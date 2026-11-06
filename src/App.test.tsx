@@ -8,14 +8,14 @@ import type { WatchlistStore } from './storage/watchlistStore.ts';
 
 function fakeClient(): CatalogClient {
   return {
-    list: vi.fn(async (query) => catalogPage(seedVideos, {
+    list: vi.fn(async (query: Parameters<CatalogClient['list']>[0]) => catalogPage(seedVideos, {
       query: '', category: 'all', sort: 'recent', page: 1, pageSize: 12, ...query,
     })),
-    getMany: vi.fn(async (ids) => ids.flatMap((id) => {
+    getMany: vi.fn(async (ids: readonly string[]) => ids.flatMap((id) => {
       const video = seedVideos.find((item) => item.id === id);
       return video ? [video] : [];
     })),
-    get: vi.fn(async (id) => {
+    get: vi.fn(async (id: string) => {
       const video = seedVideos.find((item) => item.id === id);
       if (!video) throw new Error('Not found');
       return video;
