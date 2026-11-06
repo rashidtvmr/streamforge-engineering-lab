@@ -92,6 +92,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
           <kbd>/</kbd>
         </form>
         <span className="topbar-label">ENGINEERING LAB <span className="live-dot" /></span>
+        <button type="button" className="mobile-saved" aria-label="Open saved videos" onClick={() => { setWatching(null); setView('saved'); }}>♡ Saved</button>
       </header>
       <div className="page-layout">
         <aside className="sidebar" aria-label="Primary navigation">

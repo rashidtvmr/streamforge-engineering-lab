@@ -1,7 +1,7 @@
 name: StreamForge CI
 on:
   push:
-    branches: [main, 'edu/**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -17,13 +17,47 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install dependencies
+      - name: Install pinned direct dependencies
         run: npm install --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
       - name: Lint
         run: npm run lint
-      - name: Component, property and native domain tests
+      - name: Unit, property, HTTP integration and React component tests
         run: npm run test
-      - name: Build application
+      - name: Production build
         run: npm run build
+      - name: Bundle budgets
+        run: npm run check:bundle
+      - name: Generate coverage
+        run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: streamforge-coverage
+          path: coverage/
+          if-no-files-found: ignore
+
+  browser:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run full browser journeys and accessibility audit
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: streamforge-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
