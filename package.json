@@ -25,7 +25,8 @@
     "test:components": "vitest run",
     "test:api": "node --experimental-strip-types --test tests/node/api.test.ts",
     "test:watchlist": "node --experimental-strip-types --test tests/node/watchlist.test.ts",
-    "test:native": "node --experimental-strip-types --test tests/node/*.test.ts"
+    "test:native": "node --experimental-strip-types --test tests/node/*.test.ts",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "react": "19.1.1",
@@ -51,6 +52,7 @@
     "typescript": "5.9.2",
     "typescript-eslint": "8.40.0",
     "vite": "7.1.12",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "@axe-core/playwright": "4.10.2"
   }
 }

@@ -98,3 +98,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .saved-description { margin-bottom: 30px; color: #a5b1ca; line-height: 1.6; }
 .watch-save-button { margin-top: 8px; padding: 12px 20px; border-radius: 11px; color: #fff; background: #414094; border: 1px solid #6864cf; }
 .watch-save-button[aria-pressed='true'] { color: #ffd2e3; background: #713653; border-color: #aa577f; }
+
+.mobile-saved { display: none; border: 1px solid #50517e; background: #302957; color: #fff; border-radius: 10px; padding: 9px 12px; font-size: .82rem; }
+@media (max-width: 1100px) { .mobile-saved { display: inline-flex; } }

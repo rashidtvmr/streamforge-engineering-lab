@@ -10,3 +10,5 @@ Treat every PR as an engineering learning unit.
 6. Do not merge while critical checks fail.
 
 Prefer semantic selectors in UI tests and deterministic fixtures. Test public behavior and domain invariants rather than internal implementation details. Isolate network, clock, randomness and persistence behind boundaries.
+
+For stacked feature PRs, use the previous unmerged feature branch as the PR base. Do not merge if native, Vitest or Playwright checks have not executed or are failing. Keep PR descriptions honest about which checks were actually run.
