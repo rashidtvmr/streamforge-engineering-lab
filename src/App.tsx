@@ -2,17 +2,21 @@ import { useEffect, useState } from 'react';
 import { createCatalogClient, type CatalogClient } from './api/catalogClient.ts';
 import { VideoCard } from './components/VideoCard.tsx';
 import { WatchPanel } from './components/WatchPanel.tsx';
+import { SavedLibrary } from './components/SavedLibrary.tsx';
+import { toggleSaved } from './domain/watchlist.ts';
+import { createWatchlistStore, type WatchlistStore } from './storage/watchlistStore.ts';
 import { categories, type Category, type SortOrder, type Video } from './domain/types.ts';
 
 const defaultCatalog = createCatalogClient();
+const defaultWatchlist = createWatchlistStore();
 const categoryLabels: Record<Category | 'all', string> = {
   all: 'All videos', engineering: 'Engineering', design: 'Design', product: 'Product', science: 'Science',
 };
 
-interface AppProps { catalog?: CatalogClient }
+interface AppProps { catalog?: CatalogClient; watchlist?: WatchlistStore }
 interface Filters { query: string; category: Category | 'all'; sort: SortOrder }
 
-export function App({ catalog = defaultCatalog }: AppProps) {
+export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: AppProps) {
   const [filters, setFilters] = useState<Filters>({ query: '', category: 'all', sort: 'recent' });
   const [page, setPage] = useState(1);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -21,6 +25,35 @@ export function App({ catalog = defaultCatalog }: AppProps) {
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
+  const [view, setView] = useState<'discover' | 'saved'>('discover');
+  const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
+  const [savedVideos, setSavedVideos] = useState<Video[]>([]);
+  const [savedLoading, setSavedLoading] = useState(false);
+  const [savedError, setSavedError] = useState('');
+  const [savedRetry, setSavedRetry] = useState(0);
+
+  useEffect(() => watchlist.write(savedIds), [watchlist, savedIds]);
+  useEffect(() => {
+    if (view !== 'saved' || savedIds.length === 0) {
+      setSavedVideos([]);
+      setSavedError('');
+      setSavedLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    let ignore = false;
+    setSavedLoading(true);
+    setSavedError('');
+    catalog.getMany(savedIds, controller.signal)
+      .then((items) => { if (!ignore) setSavedVideos(items); })
+      .catch((reason: unknown) => { if (!ignore) setSavedError(reason instanceof Error ? reason.message : 'Unable to load collection'); })
+      .finally(() => { if (!ignore) setSavedLoading(false); });
+    return () => { ignore = true; controller.abort(); };
+  }, [catalog, view, savedIds, savedRetry]);
+
+  function goHome() { setWatching(null); setView('discover'); }
+  function toggleVideo(id: string) { setSavedIds((previous) => toggleSaved(previous, id)); }
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -50,12 +83,12 @@ export function App({ catalog = defaultCatalog }: AppProps) {
     <div className="app-frame">
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="topbar">
-        <button type="button" className="brand" onClick={() => setWatching(null)} aria-label="StreamForge home">
+        <button type="button" className="brand" onClick={goHome} aria-label="StreamForge home">
           <span className="brand-icon" aria-hidden="true">▶</span><span>Stream<span className="brand-accent">Forge</span></span>
         </button>
         <form role="search" className="search-form" onSubmit={(event) => event.preventDefault()}>
           <span aria-hidden="true">⌕</span>
-          <input aria-label="Search videos" type="search" placeholder="Search videos, creators and topics" value={filters.query} onChange={(event) => changeFilters({ query: event.target.value })} />
+          <input aria-label="Search videos" type="search" placeholder="Search videos, creators and topics" value={filters.query} onChange={(event) => { goHome(); changeFilters({ query: event.target.value }); }} />
           <kbd>/</kbd>
         </form>
         <span className="topbar-label">ENGINEERING LAB <span className="live-dot" /></span>
@@ -64,8 +97,11 @@ export function App({ catalog = defaultCatalog }: AppProps) {
         <aside className="sidebar" aria-label="Primary navigation">
           <div className="side-section">
             <p className="side-heading">WORKSPACE</p>
-            <button type="button" className="side-link side-link-active" onClick={() => setWatching(null)} aria-current={!watching ? 'page' : undefined}>
+            <button type="button" className={`side-link ${view === 'discover' ? 'side-link-active' : ''}`} onClick={goHome} aria-current={view === 'discover' && !watching ? 'page' : undefined}>
               <span aria-hidden="true">▦</span> Discover
+            </button>
+            <button type="button" className={`side-link ${view === 'saved' ? 'side-link-active' : ''}`} aria-label="Saved videos" onClick={() => { setWatching(null); setView('saved'); }} aria-current={view === 'saved' && !watching ? 'page' : undefined}>
+              <span aria-hidden="true">♡</span> Saved videos <span className="side-count">{savedIds.length}</span>
             </button>
           </div>
           <div className="side-section side-feature">
@@ -78,7 +114,9 @@ export function App({ catalog = defaultCatalog }: AppProps) {
         </aside>
         <main id="main-content" className="main-content">
           {watching ? (
-            <WatchPanel video={watching} onBack={() => setWatching(null)} />
+            <WatchPanel video={watching} onBack={() => setWatching(null)} saved={savedIds.includes(watching.id)} onToggleSaved={() => toggleVideo(watching.id)} />
+          ) : view === 'saved' ? (
+            <SavedLibrary videos={savedVideos.filter((video) => savedIds.includes(video.id))} hasSaved={savedIds.length > 0} loading={savedLoading} error={savedError} onWatch={setWatching} onRemove={toggleVideo} onRetry={() => setSavedRetry((value) => value + 1)} />
           ) : (
             <>
               <section className="hero" aria-label="Introduction">
@@ -112,7 +150,7 @@ export function App({ catalog = defaultCatalog }: AppProps) {
                 <div className="empty-state"><h3>No videos found</h3><p>Try another search term or category.</p><button type="button" onClick={() => changeFilters({ query: '', category: 'all' })}>Clear filters</button></div>
               )}
               <section className="video-grid" aria-label="Video results">
-                {videos.map((video) => <VideoCard key={video.id} video={video} onWatch={setWatching} />)}
+                {videos.map((video) => <VideoCard key={video.id} video={video} saved={savedIds.includes(video.id)} onToggleSaved={toggleVideo} onWatch={setWatching} />)}
               </section>
               {!error && videos.length > 0 && videos.length < total && (
                 <div className="pagination"><button type="button" onClick={() => setPage((value) => value + 1)} disabled={loading}>
