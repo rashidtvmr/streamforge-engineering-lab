@@ -16,11 +16,13 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "npm run test:domain && npm run test:components",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "test:domain": "node --experimental-strip-types --test tests/node/catalog.test.ts",
+    "test:components": "vitest run"
   },
   "dependencies": {
     "react": "19.1.1",

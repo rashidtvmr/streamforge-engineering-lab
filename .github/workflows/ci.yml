@@ -23,7 +23,7 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
-      - name: Component and unit tests
+      - name: Component, property and native domain tests
         run: npm run test
       - name: Build application
         run: npm run build
