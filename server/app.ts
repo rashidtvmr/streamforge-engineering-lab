@@ -1,4 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
 import { catalogPage } from '../src/domain/catalog.ts';
 import { seedVideos } from '../src/domain/seed.ts';
 import { categories, type CatalogQuery } from '../src/domain/types.ts';
@@ -37,7 +40,44 @@ export function parseCatalogQuery(parameters: URLSearchParams): CatalogQuery | n
   return { query, category: category as CatalogQuery['category'], sort, page, pageSize };
 }
 
-function route(request: IncomingMessage, response: ServerResponse): void {
+async function serveStatic(response: ServerResponse, pathname: string, staticDir: string): Promise<void> {
+  const asset = /^\/assets\/([A-Za-z0-9._-]+)$/.exec(pathname);
+  const filename = pathname === '/' || pathname === '/index.html'
+    ? 'index.html'
+    : asset ? join('assets', asset[1] ?? '') : null;
+  if (!filename) {
+    sendJson(response, 404, { error: 'NOT_FOUND' });
+    return;
+  }
+  const extension = filename.split('.').pop();
+  const mime = extension === 'html' ? 'text/html; charset=utf-8'
+    : extension === 'js' ? 'text/javascript; charset=utf-8'
+    : extension === 'css' ? 'text/css; charset=utf-8'
+    : extension === 'svg' ? 'image/svg+xml'
+    : extension === 'png' ? 'image/png'
+    : 'application/octet-stream';
+  const file = join(staticDir, filename);
+  try {
+    const info = await stat(file);
+    if (!info.isFile()) throw new Error('not a file');
+    response.statusCode = 200;
+    response.setHeader('content-type', mime);
+    response.setHeader('content-length', info.size);
+    response.setHeader('x-content-type-options', 'nosniff');
+    response.setHeader('cache-control', filename === 'index.html' ? 'no-cache' : 'public, max-age=31536000, immutable');
+    response.setHeader('content-security-policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' https://interactive-examples.mdn.mozilla.net; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    const stream = createReadStream(file);
+    stream.on('error', (error) => {
+      if (!response.headersSent) sendJson(response, 500, { error: 'ASSET_READ_FAILED' });
+      else response.destroy(error);
+    });
+    stream.pipe(response);
+  } catch {
+    sendJson(response, 404, { error: 'NOT_FOUND' });
+  }
+}
+
+function route(request: IncomingMessage, response: ServerResponse, staticDir?: string): void {
   if (request.method !== 'GET') {
     response.setHeader('allow', 'GET');
     sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });
@@ -86,9 +126,13 @@ function route(request: IncomingMessage, response: ServerResponse): void {
     sendJson(response, video ? 200 : 404, video ?? { error: 'VIDEO_NOT_FOUND' });
     return;
   }
+  if (staticDir && !url.pathname.startsWith('/api/')) {
+    void serveStatic(response, url.pathname, staticDir);
+    return;
+  }
   sendJson(response, 404, { error: 'NOT_FOUND' });
 }
 
-export function createApp() {
-  return createServer(route);
+export function createApp(options: { staticDir?: string } = {}) {
+  return createServer((request, response) => route(request, response, options.staticDir));
 }
