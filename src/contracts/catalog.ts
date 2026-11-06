@@ -36,3 +36,10 @@ export function parseCatalogPage(input: unknown): CatalogPage {
   const videos = input.data.map(parseVideo);
   return { data: videos, total: input.total, page: input.page, pageSize: input.pageSize };
 }
+
+export function parseVideoList(input: unknown): Video[] {
+  if (!record(input) || !Array.isArray(input.data) || input.data.length > 24) {
+    throw new Error('INVALID_VIDEO_LIST_RESPONSE');
+  }
+  return input.data.map(parseVideo);
+}

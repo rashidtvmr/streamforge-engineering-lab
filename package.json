@@ -16,14 +16,16 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test:domain && npm run test:api && npm run test:components",
+    "test": "npm run test:native && npm run test:components",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "test:domain": "node --experimental-strip-types --test tests/node/catalog.test.ts",
     "test:components": "vitest run",
-    "test:api": "node --experimental-strip-types --test tests/node/api.test.ts"
+    "test:api": "node --experimental-strip-types --test tests/node/api.test.ts",
+    "test:watchlist": "node --experimental-strip-types --test tests/node/watchlist.test.ts",
+    "test:native": "node --experimental-strip-types --test tests/node/*.test.ts"
   },
   "dependencies": {
     "react": "19.1.1",

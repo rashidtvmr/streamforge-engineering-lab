@@ -13,11 +13,17 @@ export function formatViews(views: number): string {
 interface VideoCardProps {
   video: Video;
   onWatch(video: Video): void;
+  saved: boolean;
+  onToggleSaved(id: string): void;
 }
 
-export function VideoCard({ video, onWatch }: VideoCardProps) {
+export function VideoCard({ video, onWatch, saved, onToggleSaved }: VideoCardProps) {
   return (
     <article className="video-card">
+      <button type="button" className="save-button" aria-pressed={saved} onClick={() => onToggleSaved(video.id)}
+        aria-label={`${saved ? 'Remove' : 'Save'} ${video.title} ${saved ? 'from' : 'to'} watchlist`}>
+        {saved ? '♥' : '♡'}
+      </button>
       <button type="button" className="video-card-button" onClick={() => onWatch(video)} aria-label={`Watch ${video.title}`}>
         <span className={`video-poster category-${video.category}`} aria-hidden="true">
           <span className="poster-mark">{video.category.charAt(0).toUpperCase()}</span>

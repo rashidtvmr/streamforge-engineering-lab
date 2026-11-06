@@ -65,6 +65,21 @@ function route(request: IncomingMessage, response: ServerResponse): void {
     sendJson(response, 200, catalogPage(seedVideos, query));
     return;
   }
+  if (url.pathname === '/api/videos/lookup') {
+    const keys = [...url.searchParams.keys()];
+    const ids = (url.searchParams.get('ids') ?? '').split(',');
+    if (keys.length !== 1 || keys[0] !== 'ids' || ids.length > 24 ||
+        ids.some((id) => !/^video-[0-9]{3}$/.test(id))) {
+      sendJson(response, 400, { error: 'INVALID_IDS' });
+      return;
+    }
+    const data = ids.flatMap((id) => {
+      const video = seedVideos.find((item) => item.id === id);
+      return video ? [video] : [];
+    });
+    sendJson(response, 200, { data });
+    return;
+  }
   const match = /^\/api\/videos\/([^/]+)$/.exec(url.pathname);
   if (match) {
     const video = seedVideos.find((item) => item.id === match[1]);
