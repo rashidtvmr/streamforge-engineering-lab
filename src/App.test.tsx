@@ -4,11 +4,16 @@ import { App } from './App.tsx';
 import type { CatalogClient } from './api/catalogClient.ts';
 import { catalogPage } from './domain/catalog.ts';
 import { seedVideos } from './domain/seed.ts';
+import type { WatchlistStore } from './storage/watchlistStore.ts';
 
 function fakeClient(): CatalogClient {
   return {
     list: vi.fn(async (query) => catalogPage(seedVideos, {
       query: '', category: 'all', sort: 'recent', page: 1, pageSize: 12, ...query,
+    })),
+    getMany: vi.fn(async (ids) => ids.flatMap((id) => {
+      const video = seedVideos.find((item) => item.id === id);
+      return video ? [video] : [];
     })),
     get: vi.fn(async (id) => {
       const video = seedVideos.find((item) => item.id === id);
@@ -16,6 +21,11 @@ function fakeClient(): CatalogClient {
       return video;
     }),
   };
+}
+
+function memoryWatchlist(): WatchlistStore {
+  let stored: string[] = [];
+  return { read: () => [...stored], write: (ids) => { stored = [...ids]; } };
 }
 
 describe('video discovery journey', () => {
@@ -57,6 +67,20 @@ describe('video discovery journey', () => {
     expect(screen.getByLabelText('Video player: React rendering at scale')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '← Back to discovery' }));
     expect(screen.getByRole('heading', { name: 'Discover videos' })).toBeVisible();
+  });
+
+  it('persists saved videos after an unmount and permits removing them', async () => {
+    const watchlist = memoryWatchlist();
+    const first = render(<App catalog={fakeClient()} watchlist={watchlist} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Save React rendering at scale to watchlist' }));
+    await waitFor(() => expect(watchlist.read()).toContain('video-001'));
+    first.unmount();
+
+    render(<App catalog={fakeClient()} watchlist={watchlist} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Saved videos' }));
+    expect(await screen.findByRole('button', { name: 'Watch React rendering at scale' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove React rendering at scale from watchlist' }));
+    expect(await screen.findByRole('heading', { name: 'Your watchlist is empty' })).toBeVisible();
   });
 
   it('reports fetch errors and permits an explicit retry', async () => {

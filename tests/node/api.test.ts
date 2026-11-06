@@ -63,6 +63,20 @@ describe('HTTP integration and contract tests', () => {
     assert.deepEqual(await missing.json(), { error: 'VIDEO_NOT_FOUND' });
   });
 
+  it('hydrates a watchlist using one batch HTTP request in requested order', async () => {
+    const response = await get('/api/videos/lookup?ids=video-005,video-001');
+    assert.equal(response.status, 200);
+    const body = await response.json() as { data: Array<{ id: string }> };
+    assert.deepEqual(body.data.map((video) => video.id), ['video-005', 'video-001']);
+  });
+
+  it('rejects invalid batch ids and unexpected parameters', async () => {
+    for (const path of ['/api/videos/lookup?ids=<script>', '/api/videos/lookup', '/api/videos/lookup?ids=video-001&admin=true']) {
+      const response = await get(path);
+      assert.equal(response.status, 400, path);
+    }
+  });
+
   it('rejects unsupported methods', async () => {
     const response = await fetch(origin + '/api/videos', { method: 'POST' });
     assert.equal(response.status, 405);
