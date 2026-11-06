@@ -61,3 +61,24 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
+
+  container:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production container
+        run: docker build -t streamforge:ci .
+      - name: Smoke-test production server and static app
+        run: |
+          docker run --rm -d --name streamforge-ci -p 127.0.0.1:4000:4000 streamforge:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4000/api/health
+          curl -fsS http://127.0.0.1:4000/ | grep -q '<html'
+      - name: Stop container
+        if: ${{ always() }}
+        run: docker stop streamforge-ci || true
