@@ -55,6 +55,7 @@ Playwright needs Chromium installed once: `npx playwright install chromium`.
 | [#4](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/4) | Discovery UI | Behavior-driven React component integration |
 | [#5](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/5) | Saved library | Persistence, normalization and N+1 avoidance |
 | [#6](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/6) | Browser and delivery gates | Real user journeys, responsive a11y and artifact reports |
+| [#7](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/7) | Production runtime | Single-origin serving, CSP, immutable cache, Docker smoke test |
 
 PRs are **stacked**, each one targeting its predecessor's head branch. Review from #1 upward. Do not merge until CI is green; after merging the previous PR, retarget the next PR to `main` if GitHub has not done so automatically.
 
@@ -68,3 +69,9 @@ See `docs/adr/` for architectural decisions, `docs/learning/` for exercises, `CO
 - GitHub Actions runs were created but failed before a runner was assigned, so CI results are **not green**. Review GitHub Actions runner/account settings and rerun the workflows.
 - No checked-in `package-lock.json` was generated in this offline authoring environment. Pinning direct versions is insufficient for full reproducibility; after a successful `npm install`, commit the generated lockfile and switch CI from `npm install` to `npm ci`.
 - A watchlist stored in localStorage is not synchronized across devices. Static demo footage requires internet access for playback.
+
+## Production demo
+
+After installing dependencies, run `npm run build && npm start` to serve the frontend and API from http://127.0.0.1:4000. To build the container, run `docker build -t streamforge .` then `docker run --rm -p 127.0.0.1:4000:4000 streamforge`. See [PR 07 learning guide](docs/learning/07-production-runtime.md).
+
+**Important:** The Node HTTP production-static suite has been run locally; the actual Vite build, container image and Playwright browser suite have not yet run successfully in this environment.

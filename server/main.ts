@@ -8,9 +8,11 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65535) {
 }
 
 const staticDir = resolve(process.cwd(), 'dist');
+const host = process.env.HOST ?? '127.0.0.1';
+if (host !== '127.0.0.1' && host !== '0.0.0.0') throw new Error('Unsupported HOST');
 const server = createApp({ staticDir: existsSync(staticDir) ? staticDir : undefined });
-server.listen(port, '127.0.0.1', () => {
-  console.info(`StreamForge API running at http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.info(`StreamForge API running at http://${host}:${port}`);
 });
 process.on('SIGTERM', () => server.close());
 process.on('SIGINT', () => server.close());
