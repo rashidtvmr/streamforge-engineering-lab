@@ -11,6 +11,14 @@ export function StudioPanel() {
   const [category, setCategory] = useState<Category>('engineering');
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
+  const [editing, setEditing] = useState<StudioVideo | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  async function update(video: StudioVideo, changes: Partial<StudioVideo>) {
+    try {
+      await platformRequest(`/studio/videos/${video.id}`, { method: 'PATCH', body: changes });
+      setEditing(null); setRevision((value) => value + 1); setError('');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not update video'); }
+  }
   useEffect(() => {
     const controller = new AbortController();
     platformRequest<{ data: StudioVideo[] }>('/studio/videos', { signal: controller.signal })
@@ -39,6 +47,12 @@ export function StudioPanel() {
     {videos.length === 0 && <p>No drafts yet. Create your first video above.</p>}
     <ul className="studio-video-list">{videos.map((video) => <li key={video.id}>
       <strong>{video.title}</strong><span>{video.category} · {video.status}</span>
+      <button type="button" onClick={() => { void update(video, { status: video.status === 'draft' ? 'published' : 'draft' }); }}>{video.status === 'draft' ? 'Publish video' : 'Unpublish video'}</button>
+      <button type="button" onClick={() => { setEditing(video); setEditTitle(video.title); }}>Edit title</button>
+      {editing?.id === video.id && <div className="studio-inline-edit">
+        <label>Updated title<input maxLength={120} value={editTitle} onChange={(event) => setEditTitle(event.target.value)} /></label>
+        <button type="button" onClick={() => { void update(video, { title: editTitle }); }}>Save title</button>
+      </div>}
     </li>)}</ul>
   </section>;
 }

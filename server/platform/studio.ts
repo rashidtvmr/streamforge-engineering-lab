@@ -36,8 +36,22 @@ export async function handleStudio(ctx: Context): Promise<boolean> {
   const match = /^\/api\/v1\/studio\/videos\/(video-[0-9a-f-]{36})$/.exec(path);
   if (match) {
     const video = ownedStudioVideo(ctx, user.id, match[1]!);
-    if (ctx.request.method !== 'GET') throw new HttpError(405, 'METHOD_NOT_ALLOWED');
-    respond(ctx.response, 200, { video }); return true;
+    if (ctx.request.method === 'GET') { respond(ctx.response, 200, { video }); return true; }
+    if (ctx.request.method === 'PATCH') {
+      const input = await readJson(ctx.request);
+      const title = input.title === undefined ? video.title : input.title;
+      const description = input.description === undefined ? video.description : input.description;
+      const category = input.category === undefined ? video.category : input.category;
+      const status = input.status === undefined ? video.status : input.status;
+      if (typeof title !== 'string' || !title.trim() || title.trim().length > 120 ||
+          typeof description !== 'string' || description.length > 3000 ||
+          !categories.includes(String(category)) || (status !== 'draft' && status !== 'published')) throw new HttpError(400, 'INVALID_STUDIO_VIDEO');
+      const updatedAt = new Date().toISOString();
+      ctx.db.prepare('UPDATE studio_videos SET title=?,description=?,category=?,status=?,updated_at=? WHERE id=? AND owner_id=?')
+        .run(title.trim(), description.trim(), category, status, updatedAt, video.id, user.id);
+      respond(ctx.response, 200, { video: { ...video, title: title.trim(), description: description.trim(), category, status, updatedAt } }); return true;
+    }
+    throw new HttpError(405, 'METHOD_NOT_ALLOWED');
   }
   throw new HttpError(404, 'STUDIO_VIDEO_NOT_FOUND');
 }

@@ -170,3 +170,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .studio-video-list { padding: 0; list-style: none; display: grid; gap: 12px; }
 .studio-video-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 18px 22px; border-radius: 12px; background: #1b2541; border: 1px solid #414d73; }
 .studio-video-list span { color: #b0bbd4; }
+
+.studio-inline-edit { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.studio-inline-edit input { padding: 10px; background: #111a32; border: 1px solid #526289; border-radius: 9px; color: #fff; }
