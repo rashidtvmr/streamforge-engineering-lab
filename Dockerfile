@@ -11,6 +11,8 @@ ENV NODE_ENV=production PORT=4000 HOST=0.0.0.0
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/src/domain ./src/domain
+RUN mkdir -p /app/data && chown -R node:node /app/data
+VOLUME ["/app/data"]
 USER node
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD node -e "fetch('http://127.0.0.1:4000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"

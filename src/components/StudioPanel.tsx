@@ -13,6 +13,19 @@ export function StudioPanel() {
   const [revision, setRevision] = useState(0);
   const [editing, setEditing] = useState<StudioVideo | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  async function upload(video: StudioVideo, file: File) {
+    setError('');
+    try {
+      const response = await fetch(`/api/v1/studio/videos/${encodeURIComponent(video.id)}/media`, {
+        method: 'PUT', headers: { 'content-type': 'video/mp4' }, body: file, credentials: 'same-origin',
+      });
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        throw new Error(body.error ?? `UPLOAD_HTTP_${response.status}`);
+      }
+      setRevision((value) => value + 1);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to upload media'); }
+  }
   async function update(video: StudioVideo, changes: Partial<StudioVideo>) {
     try {
       await platformRequest(`/studio/videos/${video.id}`, { method: 'PATCH', body: changes });
@@ -46,7 +59,11 @@ export function StudioPanel() {
     <h2>Your video drafts</h2>
     {videos.length === 0 && <p>No drafts yet. Create your first video above.</p>}
     <ul className="studio-video-list">{videos.map((video) => <li key={video.id}>
-      <strong>{video.title}</strong><span>{video.category} · {video.status}</span>
+      <strong>{video.title}</strong><span>{video.category} · {video.status} · {video.mediaPath ? 'Media uploaded' : 'Demo playback'}</span>
+      <label>Upload MP4 for {video.title} <input type="file" accept="video/mp4" aria-label={`Upload MP4 for ${video.title}`} onChange={(event) => {
+        const file = event.target.files?.[0];
+        if (file) void upload(video, file);
+      }} /></label>
       <button type="button" onClick={() => { void update(video, { status: video.status === 'draft' ? 'published' : 'draft' }); }}>{video.status === 'draft' ? 'Publish video' : 'Unpublish video'}</button>
       <button type="button" onClick={() => { setEditing(video); setEditTitle(video.title); }}>Edit title</button>
       {editing?.id === video.id && <div className="studio-inline-edit">

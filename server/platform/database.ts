@@ -27,7 +27,7 @@ export function migrate(db: DatabaseSync): void {
       expires_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
-    CREATE TABLE IF NOT EXISTS studio_videos (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'draft', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, media_path TEXT);
+    CREATE TABLE IF NOT EXISTS studio_videos (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'draft', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, media_path TEXT, media_blob BLOB, media_mime TEXT);
     CREATE TABLE IF NOT EXISTS comment_reports (id TEXT PRIMARY KEY, comment_id TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE, reporter_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, reason TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(comment_id,reporter_id));
     CREATE TABLE IF NOT EXISTS comments (id TEXT PRIMARY KEY, video_id TEXT NOT NULL, author_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, parent_id TEXT REFERENCES comments(id), body TEXT NOT NULL, created_at TEXT NOT NULL, edited_at TEXT, deleted_at TEXT);
     CREATE INDEX IF NOT EXISTS idx_comments_video ON comments(video_id,created_at);
@@ -37,4 +37,7 @@ export function migrate(db: DatabaseSync): void {
     CREATE TABLE IF NOT EXISTS reactions (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, video_id TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('like','dislike')), PRIMARY KEY(user_id, video_id));
     CREATE TABLE IF NOT EXISTS history (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, video_id TEXT NOT NULL, progress_seconds INTEGER NOT NULL CHECK (progress_seconds BETWEEN 0 AND 36000), updated_at TEXT NOT NULL, PRIMARY KEY (user_id,video_id));
   `);
+  const columns = db.prepare('PRAGMA table_info(studio_videos)').all().map((column) => String(column.name));
+  if (!columns.includes('media_blob')) db.exec('ALTER TABLE studio_videos ADD COLUMN media_blob BLOB');
+  if (!columns.includes('media_mime')) db.exec('ALTER TABLE studio_videos ADD COLUMN media_mime TEXT');
 }
