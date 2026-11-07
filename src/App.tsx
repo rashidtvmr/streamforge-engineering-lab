@@ -5,6 +5,7 @@ import { WatchPanel } from './components/WatchPanel.tsx';
 import { SavedLibrary } from './components/SavedLibrary.tsx';
 import { AccountPanel } from './components/AccountPanel.tsx';
 import { HistoryPanel } from './components/HistoryPanel.tsx';
+import { SubscriptionsPanel } from './components/SubscriptionsPanel.tsx';
 import { platformRequest } from './platform/client.ts';
 import { toggleSaved } from './domain/watchlist.ts';
 import { createWatchlistStore, type WatchlistStore } from './storage/watchlistStore.ts';
@@ -28,7 +29,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
-  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history'>('discover');
+  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions'>('discover');
   const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
   const [savedVideos, setSavedVideos] = useState<Video[]>([]);
   const [savedLoading, setSavedLoading] = useState(false);
@@ -112,6 +113,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
             <button type="button" className={`side-link ${view === 'saved' ? 'side-link-active' : ''}`} aria-label="Saved videos" onClick={() => { setWatching(null); setView('saved'); }} aria-current={view === 'saved' && !watching ? 'page' : undefined}>
               <span aria-hidden="true">♡</span> Saved videos <span className="side-count">{savedIds.length}</span>
             </button>
+            <button type="button" className={`side-link ${view === 'subscriptions' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('subscriptions'); }}><span aria-hidden="true">▤</span> Subscriptions</button>
             <button type="button" className={`side-link ${view === 'history' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('history'); }}><span aria-hidden="true">◷</span> Watch history</button>
             <button type="button" className={`side-link ${view === 'account' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('account'); }} aria-current={view === 'account' ? 'page' : undefined}><span aria-hidden="true">♙</span> Account</button>
           </div>
@@ -126,6 +128,8 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <main id="main-content" className="main-content">
           {watching ? (
             <WatchPanel video={watching} onBack={() => setWatching(null)} saved={savedIds.includes(watching.id)} onToggleSaved={() => toggleVideo(watching.id)} />
+          ) : view === 'subscriptions' ? (
+            <SubscriptionsPanel explore={(creator) => { setWatching(null); changeFilters({ query: creator, category: 'all' }); setView('discover'); }} />
           ) : view === 'history' ? (
             <HistoryPanel catalog={catalog} onWatch={openVideo} savedIds={savedIds} onToggleSaved={toggleVideo} />
           ) : view === 'account' ? (
