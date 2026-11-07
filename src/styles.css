@@ -144,3 +144,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .share-toggle select { padding: 10px; border-radius: 9px; color: #fff; background: #19213a; border: 1px solid #626c8b; }
 .order-buttons { display: flex; gap: 8px; margin: 0 0 14px 12px; }
 .order-buttons button { color: #fff; background: #333e69; border: 1px solid #5a6995; border-radius: 8px; padding: 8px 15px; }
+
+.comments-panel { margin-top: 35px; border-top: 1px solid #394565; padding-top: 26px; }
+.comments-panel h2 { font-size: 1.5rem; }
+.comment-form { display: grid; gap: 12px; max-width: 740px; }
+.comment-form label { display: grid; gap: 10px; color: #c6d3e9; }
+.comment-form textarea { min-height: 100px; color: #fff; border: 1px solid #475476; background: #161e33; border-radius: 12px; padding: 15px; resize: vertical; }
+.comment-form button, .comment-list button { color: #fff; background: #5147a9; border: 1px solid #7770cb; border-radius: 9px; padding: 8px 14px; width: fit-content; }
+.comment-list { list-style: none; padding: 0; display: grid; gap: 15px; }
+.comment-list li { padding: 18px; border: 1px solid #353e5c; border-radius: 12px; background: #192139; }
+.comment-list .comment-reply { margin-left: 26px; border-left: 3px solid #776bea; }
+.comment-list p { color: #d2dafa; overflow-wrap: anywhere; }
