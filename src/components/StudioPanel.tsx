@@ -1,0 +1,44 @@
+import { useEffect, useState, type FormEvent } from 'react';
+import { platformRequest } from '../platform/client.ts';
+import { categories, type Category } from '../domain/types.ts';
+
+export type StudioVideo = { id: string; title: string; description: string; category: Category; status: string; createdAt: string; updatedAt: string; mediaPath: string | null };
+
+export function StudioPanel() {
+  const [videos, setVideos] = useState<StudioVideo[]>([]);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState<Category>('engineering');
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    platformRequest<{ data: StudioVideo[] }>('/studio/videos', { signal: controller.signal })
+      .then(({ data }) => setVideos(data))
+      .catch((reason: unknown) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Unable to load studio'); });
+    return () => controller.abort();
+  }, [revision]);
+  async function create(event: FormEvent) {
+    event.preventDefault(); setError('');
+    try {
+      await platformRequest('/studio/videos', { method: 'POST', body: { title, description, category } });
+      setTitle(''); setDescription(''); setRevision((value) => value + 1);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to create draft'); }
+  }
+  return <section className="studio-panel" aria-label="Creator studio">
+    <p className="eyebrow">CREATE • REVIEW • PUBLISH</p><h1>Creator Studio</h1>
+    {error && <p role="alert">{error === 'SIGN_IN_REQUIRED' ? 'Sign in through Account to create videos.' : error}</p>}
+    <form className="studio-form" onSubmit={(event) => { void create(event); }}>
+      <h2>Create video draft</h2>
+      <label>Video title<input required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
+      <label>Description<textarea maxLength={3000} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
+      <label>Category<select value={category} onChange={(event) => setCategory(event.target.value as Category)}>{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+      <button type="submit">Create draft</button>
+    </form>
+    <h2>Your video drafts</h2>
+    {videos.length === 0 && <p>No drafts yet. Create your first video above.</p>}
+    <ul className="studio-video-list">{videos.map((video) => <li key={video.id}>
+      <strong>{video.title}</strong><span>{video.category} · {video.status}</span>
+    </li>)}</ul>
+  </section>;
+}

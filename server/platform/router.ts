@@ -8,8 +8,9 @@ import { handleSubscriptions } from './subscriptions.ts';
 import { handlePlaylists } from './playlists.ts';
 import { handleComments } from './comments.ts';
 import { handleCommentModeration } from './commentModeration.ts';
+import { handleStudio } from './studio.ts';
 
-const handlers: Handler[] = [handleAuth, handleHistory, handleReactions, handleSubscriptions, handlePlaylists, handleComments, handleCommentModeration];
+const handlers: Handler[] = [handleAuth, handleHistory, handleReactions, handleSubscriptions, handlePlaylists, handleComments, handleCommentModeration, handleStudio];
 export function registerPlatformHandler(handler: Handler): void { handlers.push(handler); }
 
 export async function handlePlatformRequest(
