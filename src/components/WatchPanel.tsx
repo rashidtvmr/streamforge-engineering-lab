@@ -3,6 +3,7 @@ import { formatViews } from './VideoCard.tsx';
 import { ReactionBar } from './ReactionBar.tsx';
 import { SubscribeButton } from './SubscribeButton.tsx';
 import { AddToPlaylist } from './AddToPlaylist.tsx';
+import { CommentsPanel } from './CommentsPanel.tsx';
 
 interface WatchPanelProps {
   video: Video;
@@ -32,6 +33,7 @@ export function WatchPanel({ video, onBack, saved, onToggleSaved }: WatchPanelPr
           <AddToPlaylist key={video.id} videoId={video.id} />
           <p className="watch-meta">{formatViews(video.views)} views · {video.creator} · {video.category}</p>
           <p className="watch-description">{video.description}</p>
+          <CommentsPanel key={video.id} videoId={video.id} />
         </div>
         <aside className="watch-aside">
           <p className="eyebrow">DEMO CONTENT</p>
