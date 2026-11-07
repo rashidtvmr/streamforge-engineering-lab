@@ -10,7 +10,9 @@ export type Context = {
 export type Handler = (ctx: Context) => Promise<boolean> | boolean;
 
 export class HttpError extends Error {
-  constructor(readonly status: number, readonly code: string) { super(code); }
+  readonly status: number;
+  readonly code: string;
+  constructor(status: number, code: string) { super(code); this.status = status; this.code = code; }
 }
 
 export function respond(response: ServerResponse, status: number, body: unknown): void {
