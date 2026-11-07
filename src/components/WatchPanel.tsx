@@ -1,5 +1,6 @@
 import type { Video } from '../domain/types.ts';
 import { formatViews } from './VideoCard.tsx';
+import { ReactionBar } from './ReactionBar.tsx';
 
 interface WatchPanelProps {
   video: Video;
@@ -24,6 +25,7 @@ export function WatchPanel({ video, onBack, saved, onToggleSaved }: WatchPanelPr
           <button type="button" className="watch-save-button" aria-pressed={saved} onClick={onToggleSaved}>
             {saved ? '♥ Remove from watchlist' : '♡ Save video'}
           </button>
+          <ReactionBar key={video.id} videoId={video.id} />
           <p className="watch-meta">{formatViews(video.views)} views · {video.creator} · {video.category}</p>
           <p className="watch-description">{video.description}</p>
         </div>

@@ -116,3 +116,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 @media (max-width: 1100px) { .mobile-account { display: inline-flex; } }
 
 .action-button { border: 1px solid #746bce; background: #3b3675; color: #fff; padding: 11px 18px; border-radius: 10px; margin: 10px 0 25px; }
+
+.reaction-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+.reaction-bar button { padding: 10px 18px; border: 1px solid #434f79; border-radius: 11px; background: #222b46; color: #f7f8ff; }
+.reaction-bar button[aria-pressed='true'] { background: #51459b; border-color: #8a7ce0; }
+.reaction-bar [role='alert'] { color: #ffc6cc; }

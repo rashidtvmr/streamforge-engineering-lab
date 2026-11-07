@@ -3,8 +3,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { HttpError, respond, type Context, type Handler } from './http.ts';
 import { handleAuth } from './auth.ts';
 import { handleHistory } from './history.ts';
+import { handleReactions } from './reactions.ts';
 
-const handlers: Handler[] = [handleAuth, handleHistory];
+const handlers: Handler[] = [handleAuth, handleHistory, handleReactions];
 export function registerPlatformHandler(handler: Handler): void { handlers.push(handler); }
 
 export async function handlePlatformRequest(
