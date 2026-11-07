@@ -159,3 +159,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .comment-list button { margin-right: 8px; }
 .edit-comment { margin-top: 12px; display: grid; gap: 9px; }
 .edit-comment textarea { display: block; padding: 12px; border-radius: 9px; background: #111b32; color: #fff; }
+
+.studio-panel { max-width: 1050px; margin: 20px auto; }
+.studio-panel h1 { font-size: 2.5rem; }
+.studio-form { display: grid; gap: 16px; background: #19223b; border: 1px solid #424f70; padding: 26px; border-radius: 17px; margin: 20px 0 30px; }
+.studio-form label { display: grid; gap: 8px; font-weight: 700; color: #b8c7e5; }
+.studio-form input, .studio-form textarea, .studio-form select { color: #f5f7ff; padding: 13px; background: #0e172a; border: 1px solid #485779; border-radius: 10px; }
+.studio-form textarea { min-height: 95px; resize: vertical; }
+.studio-form button, .studio-video-list button { width: fit-content; background: #6251be; color: #fff; border: 1px solid #8980d9; border-radius: 9px; padding: 12px 20px; }
+.studio-video-list { padding: 0; list-style: none; display: grid; gap: 12px; }
+.studio-video-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 18px 22px; border-radius: 12px; background: #1b2541; border: 1px solid #414d73; }
+.studio-video-list span { color: #b0bbd4; }

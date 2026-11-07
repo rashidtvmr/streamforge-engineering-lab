@@ -1,0 +1,43 @@
+import { randomUUID } from 'node:crypto';
+import { HttpError, readJson, respond, type Context } from './http.ts';
+import { requireUser } from './auth.ts';
+
+const categories = ['engineering', 'design', 'product', 'science'];
+export type StudioVideo = { id: string; title: string; description: string; category: string; status: string; createdAt: string; updatedAt: string; mediaPath: string | null };
+export function ownedStudioVideo(ctx: Context, userId: string, id: string): StudioVideo {
+  const row = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,media_path AS mediaPath FROM studio_videos WHERE id=? AND owner_id=?')
+    .get(id, userId) as StudioVideo | undefined;
+  if (!row) throw new HttpError(404, 'STUDIO_VIDEO_NOT_FOUND');
+  return row;
+}
+
+export async function handleStudio(ctx: Context): Promise<boolean> {
+  const path = ctx.url.pathname;
+  if (!path.startsWith('/api/v1/studio/videos')) return false;
+  const user = requireUser(ctx);
+  if (path === '/api/v1/studio/videos') {
+    if (ctx.request.method === 'GET') {
+      const data = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,media_path AS mediaPath FROM studio_videos WHERE owner_id=? ORDER BY created_at DESC,id').all(user.id);
+      respond(ctx.response, 200, { data }); return true;
+    }
+    if (ctx.request.method === 'POST') {
+      const input = await readJson(ctx.request);
+      if (typeof input.title !== 'string' || !input.title.trim() || input.title.trim().length > 120 ||
+          typeof input.description !== 'string' || input.description.length > 3000 ||
+          !categories.includes(String(input.category))) throw new HttpError(400, 'INVALID_STUDIO_VIDEO');
+      const now = new Date().toISOString();
+      const video = { id: `video-${randomUUID()}`, title: input.title.trim(), description: input.description.trim(), category: input.category as string, status: 'draft', createdAt: now, updatedAt: now, mediaPath: null };
+      ctx.db.prepare('INSERT INTO studio_videos(id,owner_id,title,description,category,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)')
+        .run(video.id, user.id, video.title, video.description, video.category, video.status, now, now);
+      respond(ctx.response, 201, { video }); return true;
+    }
+    throw new HttpError(405, 'METHOD_NOT_ALLOWED');
+  }
+  const match = /^\/api\/v1\/studio\/videos\/(video-[0-9a-f-]{36})$/.exec(path);
+  if (match) {
+    const video = ownedStudioVideo(ctx, user.id, match[1]!);
+    if (ctx.request.method !== 'GET') throw new HttpError(405, 'METHOD_NOT_ALLOWED');
+    respond(ctx.response, 200, { video }); return true;
+  }
+  throw new HttpError(404, 'STUDIO_VIDEO_NOT_FOUND');
+}
