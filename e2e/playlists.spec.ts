@@ -1,0 +1,22 @@
+import { test, expect } from '@playwright/test';
+test('create a playlist and add a video through the player', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Account', exact: true }).click();
+  await page.getByRole('button', { name: 'New here? Create an account' }).click();
+  await page.getByRole('textbox', { name: 'Display name' }).fill('Playlist Tester');
+  await page.getByRole('textbox', { name: 'Email' }).fill(`playlist-${Date.now()}@example.test`);
+  await page.getByLabel('Password').fill('strong-demo-password');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await page.getByRole('button', { name: 'Playlists' }).click();
+  await page.getByRole('textbox', { name: 'New playlist name' }).fill('Frontend lessons');
+  await page.getByRole('button', { name: 'Create playlist' }).click();
+  await page.getByRole('button', { name: 'StreamForge home' }).click();
+  await page.getByRole('button', { name: 'Watch React rendering at scale' }).click();
+  await page.getByRole('combobox', { name: 'Choose playlist' }).selectOption({ label: 'Frontend lessons' });
+  await page.getByRole('button', { name: 'Add video' }).click();
+  await expect(page.getByText('Added to playlist')).toBeVisible();
+  await page.getByRole('button', { name: '← Back to discovery' }).click();
+  await page.getByRole('button', { name: 'Playlists' }).click();
+  await page.getByRole('button', { name: 'Frontend lessons' }).click();
+  await expect(page.getByRole('button', { name: 'Watch React rendering at scale' })).toBeVisible();
+});
