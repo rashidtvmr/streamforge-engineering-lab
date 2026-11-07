@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { requireUser } from './auth.ts';
+import { notifyReply } from './notifications.ts';
 
 export async function handleComments(ctx: Context): Promise<boolean> {
   const match = /^\/api\/v1\/videos\/(video-[0-9]{3})\/comments$/.exec(ctx.url.pathname);
@@ -27,5 +28,6 @@ export async function handleComments(ctx: Context): Promise<boolean> {
   const comment = { id: randomUUID(), videoId, parentId, body: input.body.trim(), author: user.name, authorId: user.id, createdAt: new Date().toISOString(), editedAt: null };
   ctx.db.prepare('INSERT INTO comments(id,video_id,author_id,parent_id,body,created_at) VALUES(?,?,?,?,?,?)')
     .run(comment.id, videoId, user.id, parentId, comment.body, comment.createdAt);
+  if (parentId) notifyReply(ctx.db, String(parentId), user.id, videoId);
   respond(ctx.response, 201, { comment }); return true;
 }
