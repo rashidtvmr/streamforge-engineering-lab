@@ -19,6 +19,9 @@ export function respond(response: ServerResponse, status: number, body: unknown)
   response.statusCode = status;
   response.setHeader('content-type', 'application/json; charset=utf-8');
   response.setHeader('x-content-type-options', 'nosniff');
+  response.setHeader('referrer-policy', 'no-referrer');
+  response.setHeader('cross-origin-resource-policy', 'same-origin');
+  response.setHeader('permissions-policy', 'camera=(), microphone=(), geolocation=()');
   response.setHeader('cache-control', 'no-store');
   response.end(JSON.stringify(body));
 }

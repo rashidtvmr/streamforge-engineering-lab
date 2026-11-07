@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { HttpError, respond, type Context, type Handler } from './http.ts';
+import { guardPlatformRequest } from './guard.ts';
 import { handleAuth } from './auth.ts';
 import { handleHistory } from './history.ts';
 import { handleReactions } from './reactions.ts';
@@ -26,6 +27,7 @@ export async function handlePlatformRequest(
 ): Promise<void> {
   const ctx: Context = { db, request, response, url };
   try {
+    guardPlatformRequest(ctx);
     if (url.pathname === '/api/v1/ping') {
       respond(response, 200, { status: 'ok', storage: 'sqlite' });
       return;
