@@ -155,3 +155,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .comment-list li { padding: 18px; border: 1px solid #353e5c; border-radius: 12px; background: #192139; }
 .comment-list .comment-reply { margin-left: 26px; border-left: 3px solid #776bea; }
 .comment-list p { color: #d2dafa; overflow-wrap: anywhere; }
+
+.comment-list button { margin-right: 8px; }
+.edit-comment { margin-top: 12px; display: grid; gap: 9px; }
+.edit-comment textarea { display: block; padding: 12px; border-radius: 9px; background: #111b32; color: #fff; }
