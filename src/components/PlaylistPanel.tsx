@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { platformRequest } from '../platform/client.ts';
 import type { CatalogClient } from '../api/catalogClient.ts';
 import type { Video } from '../domain/types.ts';
@@ -30,7 +30,7 @@ export function PlaylistPanel({ catalog, onWatch, savedIds, onToggleSaved }: {
       .catch((reason: unknown) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Unable to load playlist'); });
     return () => controller.abort();
   }, [selected, catalog, revision]);
-  async function create(event: React.FormEvent) {
+  async function create(event: FormEvent) {
     event.preventDefault();
     try {
       const result = await platformRequest<{ playlist: Playlist }>('/playlists', { method: 'POST', body: { name } });
