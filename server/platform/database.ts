@@ -27,6 +27,8 @@ export function migrate(db: DatabaseSync): void {
       expires_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE TABLE IF NOT EXISTS playlists (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, name TEXT NOT NULL, visibility TEXT NOT NULL DEFAULT 'private', created_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS playlist_items (playlist_id TEXT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE, video_id TEXT NOT NULL, position INTEGER NOT NULL, PRIMARY KEY(playlist_id,video_id));
     CREATE TABLE IF NOT EXISTS subscriptions (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, creator TEXT NOT NULL, PRIMARY KEY(user_id, creator));
     CREATE TABLE IF NOT EXISTS reactions (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, video_id TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('like','dislike')), PRIMARY KEY(user_id, video_id));
     CREATE TABLE IF NOT EXISTS history (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, video_id TEXT NOT NULL, progress_seconds INTEGER NOT NULL CHECK (progress_seconds BETWEEN 0 AND 36000), updated_at TEXT NOT NULL, PRIMARY KEY (user_id,video_id));

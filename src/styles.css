@@ -129,3 +129,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .subscriptions-list { list-style: none; padding: 0; display: grid; gap: 12px; }
 .subscriptions-list li { padding: 15px 18px; display: flex; align-items: center; gap: 16px; background: #1b2440; border-radius: 14px; }
 .subscriptions-list button { margin-left: auto; }
+
+.playlist-create, .add-playlist { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+.playlist-create label, .add-playlist label { display: grid; gap: 7px; color: #b7c1dd; }
+.playlist-create input, .add-playlist select { background: #141c32; border: 1px solid #4b557a; color: #fff; padding: 10px 13px; border-radius: 9px; }
+.playlist-create button, .add-playlist button { background: #574bbb; color: #fff; border: 1px solid #837bdd; border-radius: 9px; padding: 10px 15px; }
+.playlist-layout { display: grid; grid-template-columns: 180px minmax(0,1fr); gap: 25px; }
+.playlist-list { display: grid; align-content: start; gap: 9px; }
+.playlist-list button { text-align: left; color: #dae2fb; background: #1b2540; border: 1px solid #384568; padding: 13px; border-radius: 10px; }
+.playlist-list button[aria-pressed='true'] { background: #5146a3; }
+@media (max-width: 800px) { .playlist-layout { grid-template-columns: 1fr; } }
