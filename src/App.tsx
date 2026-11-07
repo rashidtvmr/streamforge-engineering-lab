@@ -4,6 +4,8 @@ import { VideoCard } from './components/VideoCard.tsx';
 import { WatchPanel } from './components/WatchPanel.tsx';
 import { SavedLibrary } from './components/SavedLibrary.tsx';
 import { AccountPanel } from './components/AccountPanel.tsx';
+import { HistoryPanel } from './components/HistoryPanel.tsx';
+import { platformRequest } from './platform/client.ts';
 import { toggleSaved } from './domain/watchlist.ts';
 import { createWatchlistStore, type WatchlistStore } from './storage/watchlistStore.ts';
 import { categories, type Category, type SortOrder, type Video } from './domain/types.ts';
@@ -26,7 +28,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
-  const [view, setView] = useState<'discover' | 'saved' | 'account'>('discover');
+  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history'>('discover');
   const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
   const [savedVideos, setSavedVideos] = useState<Video[]>([]);
   const [savedLoading, setSavedLoading] = useState(false);
@@ -54,6 +56,10 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
 
   function goHome() { setWatching(null); setView('discover'); }
   function toggleVideo(id: string) { setSavedIds((previous) => toggleSaved(previous, id)); }
+  function openVideo(video: Video) {
+    setWatching(video);
+    void platformRequest('/history', { method: 'POST', body: { videoId: video.id, progressSeconds: 0 } }).catch(() => {});
+  }
 
 
   useEffect(() => {
@@ -106,6 +112,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
             <button type="button" className={`side-link ${view === 'saved' ? 'side-link-active' : ''}`} aria-label="Saved videos" onClick={() => { setWatching(null); setView('saved'); }} aria-current={view === 'saved' && !watching ? 'page' : undefined}>
               <span aria-hidden="true">♡</span> Saved videos <span className="side-count">{savedIds.length}</span>
             </button>
+            <button type="button" className={`side-link ${view === 'history' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('history'); }}><span aria-hidden="true">◷</span> Watch history</button>
             <button type="button" className={`side-link ${view === 'account' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('account'); }} aria-current={view === 'account' ? 'page' : undefined}><span aria-hidden="true">♙</span> Account</button>
           </div>
           <div className="side-section side-feature">
@@ -119,10 +126,12 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <main id="main-content" className="main-content">
           {watching ? (
             <WatchPanel video={watching} onBack={() => setWatching(null)} saved={savedIds.includes(watching.id)} onToggleSaved={() => toggleVideo(watching.id)} />
+          ) : view === 'history' ? (
+            <HistoryPanel catalog={catalog} onWatch={openVideo} savedIds={savedIds} onToggleSaved={toggleVideo} />
           ) : view === 'account' ? (
             <AccountPanel />
           ) : view === 'saved' ? (
-            <SavedLibrary videos={savedVideos.filter((video) => savedIds.includes(video.id))} hasSaved={savedIds.length > 0} loading={savedLoading} error={savedError} onWatch={setWatching} onRemove={toggleVideo} onRetry={() => setSavedRetry((value) => value + 1)} />
+            <SavedLibrary videos={savedVideos.filter((video) => savedIds.includes(video.id))} hasSaved={savedIds.length > 0} loading={savedLoading} error={savedError} onWatch={openVideo} onRemove={toggleVideo} onRetry={() => setSavedRetry((value) => value + 1)} />
           ) : (
             <>
               <section className="hero" aria-label="Introduction">
@@ -156,7 +165,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
                 <div className="empty-state"><h3>No videos found</h3><p>Try another search term or category.</p><button type="button" onClick={() => changeFilters({ query: '', category: 'all' })}>Clear filters</button></div>
               )}
               <section className="video-grid" aria-label="Video results">
-                {videos.map((video) => <VideoCard key={video.id} video={video} saved={savedIds.includes(video.id)} onToggleSaved={toggleVideo} onWatch={setWatching} />)}
+                {videos.map((video) => <VideoCard key={video.id} video={video} saved={savedIds.includes(video.id)} onToggleSaved={toggleVideo} onWatch={openVideo} />)}
               </section>
               {!error && videos.length > 0 && videos.length < total && (
                 <div className="pagination"><button type="button" onClick={() => setPage((value) => value + 1)} disabled={loading}>
