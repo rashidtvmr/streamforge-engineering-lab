@@ -1,8 +1,9 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { HttpError, respond, type Context, type Handler } from './http.ts';
+import { handleAuth } from './auth.ts';
 
-const handlers: Handler[] = [];
+const handlers: Handler[] = [handleAuth];
 export function registerPlatformHandler(handler: Handler): void { handlers.push(handler); }
 
 export async function handlePlatformRequest(
