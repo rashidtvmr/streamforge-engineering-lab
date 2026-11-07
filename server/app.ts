@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import { openPlatformDatabase } from './platform/database.ts';
 import { handlePlatformRequest } from './platform/router.ts';
+import { publicStudioVideos } from './platform/catalogProjection.ts';
+import type { Video } from '../src/domain/types.ts';
 import { catalogPage } from '../src/domain/catalog.ts';
 import { seedVideos } from '../src/domain/seed.ts';
 import { categories, type CatalogQuery } from '../src/domain/types.ts';
@@ -80,6 +82,10 @@ async function serveStatic(response: ServerResponse, pathname: string, staticDir
   }
 }
 
+function publicCatalog(db: DatabaseSync): Video[] {
+  return [...seedVideos, ...publicStudioVideos(db)];
+}
+
 function route(request: IncomingMessage, response: ServerResponse, staticDir: string | undefined, db: DatabaseSync): void {
   if ((request.url ?? '').startsWith('/api/v1/')) {
     let versionedUrl: URL;
@@ -112,19 +118,19 @@ function route(request: IncomingMessage, response: ServerResponse, staticDir: st
       sendJson(response, 400, { error: 'INVALID_QUERY' });
       return;
     }
-    sendJson(response, 200, catalogPage(seedVideos, query));
+    sendJson(response, 200, catalogPage(publicCatalog(db), query));
     return;
   }
   if (url.pathname === '/api/videos/lookup') {
     const keys = [...url.searchParams.keys()];
     const ids = (url.searchParams.get('ids') ?? '').split(',');
     if (keys.length !== 1 || keys[0] !== 'ids' || ids.length > 24 ||
-        ids.some((id) => !/^video-[0-9]{3}$/.test(id))) {
+        ids.some((id) => !/^video-(?:[0-9]{3}|[0-9a-f-]{36})$/.test(id))) {
       sendJson(response, 400, { error: 'INVALID_IDS' });
       return;
     }
     const data = ids.flatMap((id) => {
-      const video = seedVideos.find((item) => item.id === id);
+      const video = publicCatalog(db).find((item) => item.id === id);
       return video ? [video] : [];
     });
     sendJson(response, 200, { data });
@@ -132,7 +138,7 @@ function route(request: IncomingMessage, response: ServerResponse, staticDir: st
   }
   const match = /^\/api\/videos\/([^/]+)$/.exec(url.pathname);
   if (match) {
-    const video = seedVideos.find((item) => item.id === match[1]);
+    const video = publicCatalog(db).find((item) => item.id === match[1]);
     sendJson(response, video ? 200 : 404, video ?? { error: 'VIDEO_NOT_FOUND' });
     return;
   }
