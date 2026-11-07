@@ -10,6 +10,8 @@ import { PlaylistPanel } from './components/PlaylistPanel.tsx';
 import { SharedPlaylistPanel } from './components/SharedPlaylistPanel.tsx';
 import { StudioPanel } from './components/StudioPanel.tsx';
 import { CuratedFeedPanel } from './components/CuratedFeedPanel.tsx';
+import { SearchSuggestions } from './components/SearchSuggestions.tsx';
+import { RecentSearchesPanel } from './components/RecentSearchesPanel.tsx';
 import { platformRequest } from './platform/client.ts';
 import { toggleSaved } from './domain/watchlist.ts';
 import { createWatchlistStore, type WatchlistStore } from './storage/watchlistStore.ts';
@@ -33,7 +35,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
-  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio' | 'trending' | 'for-you'>(() =>
+  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio' | 'trending' | 'for-you' | 'recent-searches'>(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('playlist') ? 'shared' : 'discover'
   );
   const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
@@ -63,6 +65,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
 
   function goHome() { setWatching(null); setView('discover'); }
   function toggleVideo(id: string) { setSavedIds((previous) => toggleSaved(previous, id)); }
+  function recordQuery(query: string) { if (query.trim()) void platformRequest('/search/recent', { method: 'POST', body: { query: query.slice(0, 80) } }).catch(() => {}); }
   function openVideo(video: Video) {
     setWatching(video);
     void platformRequest('/history', { method: 'POST', body: { videoId: video.id, progressSeconds: 0 } }).catch(() => {});
@@ -100,10 +103,11 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <button type="button" className="brand" onClick={goHome} aria-label="StreamForge home">
           <span className="brand-icon" aria-hidden="true">▶</span><span>Stream<span className="brand-accent">Forge</span></span>
         </button>
-        <form role="search" className="search-form" onSubmit={(event) => event.preventDefault()}>
+        <form role="search" className="search-form" onSubmit={(event) => { event.preventDefault(); recordQuery(filters.query); }}>
           <span aria-hidden="true">⌕</span>
           <input aria-label="Search videos" type="search" placeholder="Search videos, creators and topics" value={filters.query} onChange={(event) => { goHome(); changeFilters({ query: event.target.value }); }} />
           <kbd>/</kbd>
+          <SearchSuggestions query={filters.query} onSelect={(title) => { changeFilters({ query: title }); setView('discover'); setWatching(null); recordQuery(title); }} />
         </form>
         <span className="topbar-label">ENGINEERING LAB <span className="live-dot" /></span>
         <button type="button" className="mobile-saved" aria-label="Open saved videos" onClick={() => { setWatching(null); setView('saved'); }}>♡ Saved</button>
@@ -119,6 +123,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
             <button type="button" className={`side-link ${view === 'saved' ? 'side-link-active' : ''}`} aria-label="Saved videos" onClick={() => { setWatching(null); setView('saved'); }} aria-current={view === 'saved' && !watching ? 'page' : undefined}>
               <span aria-hidden="true">♡</span> Saved videos <span className="side-count">{savedIds.length}</span>
             </button>
+            <button type="button" className={`side-link ${view === 'recent-searches' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('recent-searches'); }}><span aria-hidden="true">⌕</span> Recent searches</button>
             <button type="button" className={`side-link ${view === 'trending' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('trending'); }}><span aria-hidden="true">↗</span> Trending</button>
             <button type="button" className={`side-link ${view === 'for-you' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('for-you'); }}><span aria-hidden="true">★</span> For you</button>
             <button type="button" className={`side-link ${view === 'studio' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('studio'); }}><span aria-hidden="true">✦</span> Creator Studio</button>
@@ -138,6 +143,8 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <main id="main-content" className="main-content">
           {watching ? (
             <WatchPanel video={watching} onBack={() => setWatching(null)} saved={savedIds.includes(watching.id)} onToggleSaved={() => toggleVideo(watching.id)} />
+          ) : view === 'recent-searches' ? (
+            <RecentSearchesPanel onSearch={(query) => { changeFilters({ query }); setView('discover'); }} />
           ) : view === 'trending' || view === 'for-you' ? (
             <CuratedFeedPanel kind={view} onWatch={openVideo} savedIds={savedIds} onToggleSaved={toggleVideo} />
           ) : view === 'studio' ? (

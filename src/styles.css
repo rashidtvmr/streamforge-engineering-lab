@@ -175,3 +175,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .studio-inline-edit input { padding: 10px; background: #111a32; border: 1px solid #526289; border-radius: 9px; color: #fff; }
 
 @media (max-width: 1100px) { .main-content .saved-library { margin-top: 20px; } }
+
+.search-form { position: relative; }
+.search-suggestions { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; width: 100%; background: #161e34; border: 1px solid #4b5681; border-radius: 12px; box-shadow: 0 20px 30px #050815aa; overflow: hidden; }
+.search-suggestions ul { list-style: none; padding: 6px; margin: 0; }
+.search-suggestions button { width: 100%; color: #e1e8ff; background: transparent; border: none; padding: 12px; text-align: left; border-radius: 8px; }
+.search-suggestions button:hover, .search-suggestions button:focus-visible { background: #353965; }
