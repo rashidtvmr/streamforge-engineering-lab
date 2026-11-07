@@ -139,3 +139,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .playlist-list button { text-align: left; color: #dae2fb; background: #1b2540; border: 1px solid #384568; padding: 13px; border-radius: 10px; }
 .playlist-list button[aria-pressed='true'] { background: #5146a3; }
 @media (max-width: 800px) { .playlist-layout { grid-template-columns: 1fr; } }
+
+.share-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 15px 0; }
+.share-toggle select { padding: 10px; border-radius: 9px; color: #fff; background: #19213a; border: 1px solid #626c8b; }
+.order-buttons { display: flex; gap: 8px; margin: 0 0 14px 12px; }
+.order-buttons button { color: #fff; background: #333e69; border: 1px solid #5a6995; border-radius: 8px; padding: 8px 15px; }
