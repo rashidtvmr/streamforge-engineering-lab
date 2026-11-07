@@ -2,6 +2,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { DatabaseSync } from 'node:sqlite';
+import { openPlatformDatabase } from './platform/database.ts';
+import { handlePlatformRequest } from './platform/router.ts';
 import { catalogPage } from '../src/domain/catalog.ts';
 import { seedVideos } from '../src/domain/seed.ts';
 import { categories, type CatalogQuery } from '../src/domain/types.ts';
@@ -77,7 +80,14 @@ async function serveStatic(response: ServerResponse, pathname: string, staticDir
   }
 }
 
-function route(request: IncomingMessage, response: ServerResponse, staticDir?: string): void {
+function route(request: IncomingMessage, response: ServerResponse, staticDir: string | undefined, db: DatabaseSync): void {
+  if ((request.url ?? '').startsWith('/api/v1/')) {
+    let versionedUrl: URL;
+    try { versionedUrl = new URL(request.url ?? '/', 'http://127.0.0.1'); }
+    catch { sendJson(response, 400, { error: 'INVALID_URL' }); return; }
+    void handlePlatformRequest(db, request, response, versionedUrl);
+    return;
+  }
   if (request.method !== 'GET') {
     response.setHeader('allow', 'GET');
     sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' });
@@ -133,6 +143,10 @@ function route(request: IncomingMessage, response: ServerResponse, staticDir?: s
   sendJson(response, 404, { error: 'NOT_FOUND' });
 }
 
-export function createApp(options: { staticDir?: string } = {}) {
-  return createServer((request, response) => route(request, response, options.staticDir));
+export function createApp(options: { staticDir?: string; database?: DatabaseSync } = {}) {
+  const owned = !options.database;
+  const db = options.database ?? openPlatformDatabase();
+  const server = createServer((request, response) => route(request, response, options.staticDir, db));
+  if (owned) server.on('close', () => db.close());
+  return server;
 }
