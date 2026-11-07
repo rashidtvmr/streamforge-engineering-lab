@@ -22,7 +22,7 @@ export function WatchPanel({ video, onBack, saved, onToggleSaved }: WatchPanelPr
       <div className="watch-grid">
         <div>
           <div className="player-shell">
-            <video controls preload="metadata" src={demoVideoUrl} aria-label={`Video player: ${video.title}`} />
+            <video controls preload="metadata" src={video.mediaUrl ?? demoVideoUrl} aria-label={`Video player: ${video.title}`} />
           </div>
           <h1 className="watch-title">{video.title}</h1>
           <button type="button" className="watch-save-button" aria-pressed={saved} onClick={onToggleSaved}>

@@ -25,5 +25,5 @@ export async function platformFixture() {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
     db.close();
   };
-  return { db, register, request, close, get cookie() { return cookie; } };
+  return { db, origin, register, request, close, get cookie() { return cookie; } };
 }

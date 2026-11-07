@@ -5,7 +5,7 @@ import { requireUser } from './auth.ts';
 const categories = ['engineering', 'design', 'product', 'science'];
 export type StudioVideo = { id: string; title: string; description: string; category: string; status: string; createdAt: string; updatedAt: string; mediaPath: string | null };
 export function ownedStudioVideo(ctx: Context, userId: string, id: string): StudioVideo {
-  const row = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,media_path AS mediaPath FROM studio_videos WHERE id=? AND owner_id=?')
+  const row = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,CASE WHEN media_blob IS NOT NULL THEN 'uploaded' ELSE NULL END AS mediaPath FROM studio_videos WHERE id=? AND owner_id=?')
     .get(id, userId) as StudioVideo | undefined;
   if (!row) throw new HttpError(404, 'STUDIO_VIDEO_NOT_FOUND');
   return row;
@@ -17,7 +17,7 @@ export async function handleStudio(ctx: Context): Promise<boolean> {
   const user = requireUser(ctx);
   if (path === '/api/v1/studio/videos') {
     if (ctx.request.method === 'GET') {
-      const data = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,media_path AS mediaPath FROM studio_videos WHERE owner_id=? ORDER BY created_at DESC,id').all(user.id);
+      const data = ctx.db.prepare('SELECT id,title,description,category,status,created_at AS createdAt,updated_at AS updatedAt,CASE WHEN media_blob IS NOT NULL THEN 'uploaded' ELSE NULL END AS mediaPath FROM studio_videos WHERE owner_id=? ORDER BY created_at DESC,id').all(user.id);
       respond(ctx.response, 200, { data }); return true;
     }
     if (ctx.request.method === 'POST') {

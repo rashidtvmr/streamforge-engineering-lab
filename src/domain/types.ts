@@ -11,6 +11,7 @@ export interface Video {
   readonly durationSeconds: number;
   readonly views: number;
   readonly publishedAt: string;
+  readonly mediaUrl?: string;
 }
 
 export interface CatalogQuery {
