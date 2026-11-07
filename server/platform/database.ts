@@ -27,6 +27,8 @@ export function migrate(db: DatabaseSync): void {
       expires_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, kind TEXT NOT NULL, message TEXT NOT NULL, video_id TEXT NOT NULL, created_at TEXT NOT NULL, read_at TEXT);
+    CREATE INDEX IF NOT EXISTS idx_notifications_owner ON notifications(user_id,created_at);
     CREATE TABLE IF NOT EXISTS recent_searches (user_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, query TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(user_id,query));
     CREATE TABLE IF NOT EXISTS studio_videos (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, title TEXT NOT NULL, description TEXT NOT NULL, category TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'draft', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, media_path TEXT, media_blob BLOB, media_mime TEXT);
     CREATE TABLE IF NOT EXISTS comment_reports (id TEXT PRIMARY KEY, comment_id TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE, reporter_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, reason TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(comment_id,reporter_id));

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { requireUser } from './auth.ts';
+import { notifyNewPublication } from './notifications.ts';
 
 const categories = ['engineering', 'design', 'product', 'science'];
 export type StudioVideo = { id: string; title: string; description: string; category: string; status: string; createdAt: string; updatedAt: string; mediaPath: string | null };
@@ -49,6 +50,7 @@ export async function handleStudio(ctx: Context): Promise<boolean> {
       const updatedAt = new Date().toISOString();
       ctx.db.prepare('UPDATE studio_videos SET title=?,description=?,category=?,status=?,updated_at=? WHERE id=? AND owner_id=?')
         .run(title.trim(), description.trim(), category, status, updatedAt, video.id, user.id);
+      if (status === 'published' && video.status !== 'published') notifyNewPublication(ctx.db, user.id, video.id, title.trim());
       respond(ctx.response, 200, { video: { ...video, title: title.trim(), description: description.trim(), category, status, updatedAt } }); return true;
     }
     throw new HttpError(405, 'METHOD_NOT_ALLOWED');

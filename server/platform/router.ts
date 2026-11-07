@@ -12,8 +12,9 @@ import { handleStudio } from './studio.ts';
 import { handleMedia } from './media.ts';
 import { handleDiscovery } from './discovery.ts';
 import { handleSearch } from './search.ts';
+import { handleNotifications } from './notifications.ts';
 
-const handlers: Handler[] = [handleAuth, handleHistory, handleReactions, handleSubscriptions, handlePlaylists, handleComments, handleCommentModeration, handleMedia, handleStudio, handleDiscovery, handleSearch];
+const handlers: Handler[] = [handleAuth, handleHistory, handleReactions, handleSubscriptions, handlePlaylists, handleComments, handleCommentModeration, handleMedia, handleStudio, handleDiscovery, handleSearch, handleNotifications];
 export function registerPlatformHandler(handler: Handler): void { handlers.push(handler); }
 
 export async function handlePlatformRequest(

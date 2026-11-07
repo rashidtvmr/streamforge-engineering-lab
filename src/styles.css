@@ -181,3 +181,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .search-suggestions ul { list-style: none; padding: 6px; margin: 0; }
 .search-suggestions button { width: 100%; color: #e1e8ff; background: transparent; border: none; padding: 12px; text-align: left; border-radius: 8px; }
 .search-suggestions button:hover, .search-suggestions button:focus-visible { background: #353965; }
+
+.notification-list { padding: 0; list-style: none; display: grid; gap: 12px; }
+.notification-list li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #253457; border-left: 4px solid #8a7aea; border-radius: 10px; padding: 20px; }
+.notification-list li.read { background: #1a2235; border-left-color: #535e76; }
+.notification-list p { color: #c0cde8; }
+.notification-list button { border: 1px solid #606eac; color: #fff; background: #51479c; border-radius: 8px; padding: 10px 15px; }
