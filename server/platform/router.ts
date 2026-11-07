@@ -4,8 +4,9 @@ import { HttpError, respond, type Context, type Handler } from './http.ts';
 import { handleAuth } from './auth.ts';
 import { handleHistory } from './history.ts';
 import { handleReactions } from './reactions.ts';
+import { handleSubscriptions } from './subscriptions.ts';
 
-const handlers: Handler[] = [handleAuth, handleHistory, handleReactions];
+const handlers: Handler[] = [handleAuth, handleHistory, handleReactions, handleSubscriptions];
 export function registerPlatformHandler(handler: Handler): void { handlers.push(handler); }
 
 export async function handlePlatformRequest(

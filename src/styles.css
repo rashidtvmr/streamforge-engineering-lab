@@ -121,3 +121,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .reaction-bar button { padding: 10px 18px; border: 1px solid #434f79; border-radius: 11px; background: #222b46; color: #f7f8ff; }
 .reaction-bar button[aria-pressed='true'] { background: #51459b; border-color: #8a7ce0; }
 .reaction-bar [role='alert'] { color: #ffc6cc; }
+
+.subscribe-controls { margin: 12px 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.subscribe-controls button, .subscriptions-list button { padding: 10px 18px; color: #fff; border: 1px solid #7669d8; background: #5548a9; border-radius: 10px; }
+.subscribe-controls button[aria-pressed='true'] { background: #283e61; }
+.subscribe-controls [role=alert] { color: #ffc2cd; }
+.subscriptions-list { list-style: none; padding: 0; display: grid; gap: 12px; }
+.subscriptions-list li { padding: 15px 18px; display: flex; align-items: center; gap: 16px; background: #1b2440; border-radius: 14px; }
+.subscriptions-list button { margin-left: auto; }
