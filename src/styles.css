@@ -114,3 +114,5 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .form-error { color: #ffc3cb; padding: 12px; border: 1px solid #a45668; border-radius: 10px; }
 .mobile-account { display: none; background: #302957; color: #fff; border: 1px solid #50517e; border-radius: 10px; padding: 9px 12px; }
 @media (max-width: 1100px) { .mobile-account { display: inline-flex; } }
+
+.action-button { border: 1px solid #746bce; background: #3b3675; color: #fff; padding: 11px 18px; border-radius: 10px; margin: 10px 0 25px; }
