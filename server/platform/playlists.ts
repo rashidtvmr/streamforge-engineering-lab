@@ -1,3 +1,4 @@
+import { isVideoId } from '../../src/domain/videoId.ts';
 import { randomUUID } from 'node:crypto';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { requireUser } from './auth.ts';
@@ -54,7 +55,7 @@ export async function handlePlaylists(ctx: Context): Promise<boolean> {
     } catch (error) { ctx.db.exec('ROLLBACK'); throw error; }
     respond(ctx.response, 200, { reordered: true }); return true;
   }
-  const match = /^\/api\/v1\/playlists\/([0-9a-f-]{36})(?:\/items(?:\/(video-[0-9]{3}))?)?$/.exec(path);
+  const match = /^\/api\/v1\/playlists\/([0-9a-f-]{36})(?:\/items(?:\/([^/]+))?)?$/.exec(path);
   if (!match) throw new HttpError(404, 'PLAYLIST_NOT_FOUND');
   const playlist = ownedPlaylist(ctx, user.id, match[1]!);
   const isItems = path.includes('/items');
@@ -73,11 +74,12 @@ export async function handlePlaylists(ctx: Context): Promise<boolean> {
     respond(ctx.response, 200, { deleted: true });
   } else if (isItems && method === 'POST' && !match[2]) {
     const input = await readJson(ctx.request);
-    if (typeof input.videoId !== 'string' || !/^video-[0-9]{3}$/.test(input.videoId)) throw new HttpError(400, 'INVALID_VIDEO_ID');
+    if (!isVideoId(input.videoId)) throw new HttpError(400, 'INVALID_VIDEO_ID');
     ctx.db.prepare(`INSERT OR IGNORE INTO playlist_items(playlist_id,video_id,position) VALUES(?,?,COALESCE((SELECT MAX(position)+1 FROM playlist_items WHERE playlist_id=?),0))`)
       .run(playlist.id, input.videoId, playlist.id);
     respond(ctx.response, 200, { added: true });
   } else if (isItems && method === 'DELETE' && match[2]) {
+    if (!isVideoId(match[2])) throw new HttpError(400, 'INVALID_VIDEO_ID');
     ctx.db.prepare('DELETE FROM playlist_items WHERE playlist_id=? AND video_id=?').run(playlist.id, match[2]);
     respond(ctx.response, 200, { removed: true });
   } else throw new HttpError(405, 'METHOD_NOT_ALLOWED');

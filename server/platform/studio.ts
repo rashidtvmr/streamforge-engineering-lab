@@ -46,7 +46,7 @@ export async function handleStudio(ctx: Context): Promise<boolean> {
       const status = input.status === undefined ? video.status : input.status;
       if (typeof title !== 'string' || !title.trim() || title.trim().length > 120 ||
           typeof description !== 'string' || description.length > 3000 ||
-          !categories.includes(String(category)) || (status !== 'draft' && status !== 'published')) throw new HttpError(400, 'INVALID_STUDIO_VIDEO');
+          typeof category !== 'string' || !categories.includes(category) || (status !== 'draft' && status !== 'published')) throw new HttpError(400, 'INVALID_STUDIO_VIDEO');
       const updatedAt = new Date().toISOString();
       ctx.db.prepare('UPDATE studio_videos SET title=?,description=?,category=?,status=?,updated_at=? WHERE id=? AND owner_id=?')
         .run(title.trim(), description.trim(), category, status, updatedAt, video.id, user.id);

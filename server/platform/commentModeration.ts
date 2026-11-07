@@ -14,7 +14,7 @@ export async function handleCommentModeration(ctx: Context): Promise<boolean> {
   if (isReport && ctx.request.method === 'POST') {
     if (existing.author_id === user.id) throw new HttpError(400, 'CANNOT_REPORT_SELF');
     const input = await readJson(ctx.request);
-    if (!['spam', 'harassment', 'other'].includes(String(input.reason))) throw new HttpError(400, 'INVALID_REPORT');
+    if (typeof input.reason !== 'string' || !['spam', 'harassment', 'other'].includes(input.reason)) throw new HttpError(400, 'INVALID_REPORT');
     ctx.db.prepare('INSERT OR IGNORE INTO comment_reports(id,comment_id,reporter_id,reason,created_at) VALUES(?,?,?,?,?)')
       .run(randomUUID(), id, user.id, input.reason, new Date().toISOString());
     respond(ctx.response, 201, { reported: true }); return true;
