@@ -173,3 +173,5 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 .studio-inline-edit { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .studio-inline-edit input { padding: 10px; background: #111a32; border: 1px solid #526289; border-radius: 9px; color: #fff; }
+
+@media (max-width: 1100px) { .main-content .saved-library { margin-top: 20px; } }
