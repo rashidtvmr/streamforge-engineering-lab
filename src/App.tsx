@@ -9,6 +9,7 @@ import { SubscriptionsPanel } from './components/SubscriptionsPanel.tsx';
 import { PlaylistPanel } from './components/PlaylistPanel.tsx';
 import { SharedPlaylistPanel } from './components/SharedPlaylistPanel.tsx';
 import { StudioPanel } from './components/StudioPanel.tsx';
+import { CuratedFeedPanel } from './components/CuratedFeedPanel.tsx';
 import { platformRequest } from './platform/client.ts';
 import { toggleSaved } from './domain/watchlist.ts';
 import { createWatchlistStore, type WatchlistStore } from './storage/watchlistStore.ts';
@@ -32,7 +33,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
-  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio'>(() =>
+  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio' | 'trending' | 'for-you'>(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('playlist') ? 'shared' : 'discover'
   );
   const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
@@ -118,6 +119,8 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
             <button type="button" className={`side-link ${view === 'saved' ? 'side-link-active' : ''}`} aria-label="Saved videos" onClick={() => { setWatching(null); setView('saved'); }} aria-current={view === 'saved' && !watching ? 'page' : undefined}>
               <span aria-hidden="true">♡</span> Saved videos <span className="side-count">{savedIds.length}</span>
             </button>
+            <button type="button" className={`side-link ${view === 'trending' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('trending'); }}><span aria-hidden="true">↗</span> Trending</button>
+            <button type="button" className={`side-link ${view === 'for-you' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('for-you'); }}><span aria-hidden="true">★</span> For you</button>
             <button type="button" className={`side-link ${view === 'studio' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('studio'); }}><span aria-hidden="true">✦</span> Creator Studio</button>
             <button type="button" className={`side-link ${view === 'playlists' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('playlists'); }}><span aria-hidden="true">☷</span> Playlists</button>
             <button type="button" className={`side-link ${view === 'subscriptions' ? 'side-link-active' : ''}`} onClick={() => { setWatching(null); setView('subscriptions'); }}><span aria-hidden="true">▤</span> Subscriptions</button>
@@ -135,6 +138,8 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <main id="main-content" className="main-content">
           {watching ? (
             <WatchPanel video={watching} onBack={() => setWatching(null)} saved={savedIds.includes(watching.id)} onToggleSaved={() => toggleVideo(watching.id)} />
+          ) : view === 'trending' || view === 'for-you' ? (
+            <CuratedFeedPanel kind={view} onWatch={openVideo} savedIds={savedIds} onToggleSaved={toggleVideo} />
           ) : view === 'studio' ? (
             <StudioPanel />
           ) : view === 'shared' ? (
