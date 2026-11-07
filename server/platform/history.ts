@@ -1,3 +1,4 @@
+import { isVideoId } from '../../src/domain/videoId.ts';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { requireUser } from './auth.ts';
 
@@ -9,7 +10,7 @@ export async function handleHistory(ctx: Context): Promise<boolean> {
     respond(ctx.response, 200, { data });
   } else if (ctx.request.method === 'POST') {
     const body = await readJson(ctx.request);
-    if (typeof body.videoId !== 'string' || !/^video-[0-9]{3}$/.test(body.videoId) ||
+    if (!isVideoId(body.videoId) ||
         typeof body.progressSeconds !== 'number' || !Number.isSafeInteger(body.progressSeconds) || body.progressSeconds < 0 || body.progressSeconds > 36000) {
       throw new HttpError(400, 'INVALID_HISTORY');
     }

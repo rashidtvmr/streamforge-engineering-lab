@@ -24,6 +24,21 @@ const categoryLabels: Record<Category | 'all', string> = {
   all: 'All videos', engineering: 'Engineering', design: 'Design', product: 'Product', science: 'Science',
 };
 
+type View = 'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio' | 'trending' | 'for-you' | 'recent-searches' | 'notifications';
+const mobileViews: ReadonlyArray<{ view: View; name: string }> = [
+  { view: 'discover', name: 'Discover' },
+  { view: 'trending', name: 'Trending' },
+  { view: 'for-you', name: 'For you' },
+  { view: 'saved', name: 'Saved videos' },
+  { view: 'playlists', name: 'Playlists' },
+  { view: 'subscriptions', name: 'Subscriptions' },
+  { view: 'history', name: 'Watch history' },
+  { view: 'notifications', name: 'Notifications' },
+  { view: 'recent-searches', name: 'Recent searches' },
+  { view: 'studio', name: 'Creator Studio' },
+  { view: 'account', name: 'Account' },
+];
+
 interface AppProps { catalog?: CatalogClient; watchlist?: WatchlistStore }
 interface Filters { query: string; category: Category | 'all'; sort: SortOrder }
 
@@ -36,7 +51,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [watching, setWatching] = useState<Video | null>(null);
-  const [view, setView] = useState<'discover' | 'saved' | 'account' | 'history' | 'subscriptions' | 'playlists' | 'shared' | 'studio' | 'trending' | 'for-you' | 'recent-searches' | 'notifications'>(() =>
+  const [view, setView] = useState<View>(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('playlist') ? 'shared' : 'discover'
   );
   const [savedIds, setSavedIds] = useState<string[]>(() => watchlist.read());
@@ -44,6 +59,7 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState('');
   const [savedRetry, setSavedRetry] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => watchlist.write(savedIds), [watchlist, savedIds]);
   useEffect(() => {
@@ -64,7 +80,12 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
     return () => { ignore = true; controller.abort(); };
   }, [catalog, view, savedIds, savedRetry]);
 
-  function goHome() { setWatching(null); setView('discover'); }
+  function navigate(view: View) {
+    setWatching(null);
+    setView(view);
+    setMobileMenuOpen(false);
+  }
+  function goHome() { navigate('discover'); }
   function toggleVideo(id: string) { setSavedIds((previous) => toggleSaved(previous, id)); }
   function recordQuery(query: string) { if (query.trim()) void platformRequest('/search/recent', { method: 'POST', body: { query: query.slice(0, 80) } }).catch(() => {}); }
   function openVideo(video: Video) {
@@ -113,7 +134,18 @@ export function App({ catalog = defaultCatalog, watchlist = defaultWatchlist }: 
         <span className="topbar-label">ENGINEERING LAB <span className="live-dot" /></span>
         <button type="button" className="mobile-saved" aria-label="Open saved videos" onClick={() => { setWatching(null); setView('saved'); }}>♡ Saved</button>
         <button type="button" className="mobile-account" onClick={() => { setWatching(null); setView('account'); }}>Account</button>
+        <button type="button" className="mobile-menu-trigger" aria-label="Open navigation"
+          aria-controls="mobile-navigation" aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen((open) => !open)}>☰ Menu</button>
       </header>
+      {mobileMenuOpen && (
+        <nav id="mobile-navigation" className="mobile-navigation" aria-label="Mobile navigation">
+          {mobileViews.map((item) => (
+            <button key={item.view} type="button" aria-current={view === item.view ? 'page' : undefined}
+              onClick={() => navigate(item.view)}>{item.name}</button>
+          ))}
+        </nav>
+      )}
       <div className="page-layout">
         <aside className="sidebar" aria-label="Primary navigation">
           <div className="side-section">

@@ -187,3 +187,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .notification-list li.read { background: #1a2235; border-left-color: #535e76; }
 .notification-list p { color: #c0cde8; }
 .notification-list button { border: 1px solid #606eac; color: #fff; background: #51479c; border-radius: 8px; padding: 10px 15px; }
+
+/* Every creator and viewer feature must be reachable when the desktop sidebar collapses. */
+.mobile-menu-trigger { display: none; color: #fff; background: #373167; border: 1px solid #5d5b94; border-radius: 10px; padding: 9px 13px; }
+.mobile-navigation { display: none; }
+@media (max-width: 1100px) {
+  .mobile-menu-trigger { display: inline-flex; align-items: center; }
+  .mobile-navigation { position: sticky; top: 0; z-index: 15; display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 8px; padding: 14px; background: #11182a; border-bottom: 1px solid #3e4873; max-height: 66vh; overflow-y: auto; }
+  .mobile-navigation button { color: #f4f6ff; text-align: left; padding: 12px; border: 1px solid #414e78; border-radius: 9px; background: #1e2842; }
+  .mobile-navigation button[aria-current='page'] { background: #5c4fa9; border-color: #9884f9; }
+}

@@ -1,29 +1,30 @@
-# StreamForge verification matrix
+# StreamForge quality and release evidence
 
-| Layer | Test files | Runs without npm? | What it protects |
-| --- | --- | --- | --- |
-| Typecheck | TS strict config | No (TypeScript package required) | Type-level structural contracts |
-| Unit examples | `tests/node/catalog.test.ts` | Yes (Node 22) | Known domain decisions |
-| Property tests | `src/domain/catalog.property.test.ts` | No | General laws over generated inputs |
-| Persistence | `tests/node/watchlist.test.ts` | Yes | Storage sanitation and state transitions |
-| HTTP integration | `tests/node/api.test.ts` | Yes | Real ephemeral server, validation, error codes |
-| Consumer contract | `src/api/catalogClient.test.ts` | No | Invalid JSON and HTTP errors |
-| React component | `src/App.test.tsx` | No | Loading, filters, pagination, watchlist |
-| Browser E2E | `e2e/*.spec.ts` | No | Real journeys and mobile flows |
-| Accessibility | `e2e/accessibility.spec.ts` | No | WCAG serious/critical violations |
-| Performance | `scripts/check-bundle.mjs` | Yes if dist exists | JS/CSS build-byte budget |
+**Date:** 2026-11-07. **Repository:** rashidtvmr/streamforge-engineering-lab
 
-## Evidence from authoring environment, 2026-11-06
+## Executed checks
 
-- Node v22 native suites: **19 passed, 0 failed**.
-- Pure domain/storage modules: local global TypeScript strict check passed.
-- TSX files: TypeScript syntax transpilation completed without syntax diagnostics.
-- Bundle-budget script: exercised against small synthetic dist assets; **passed**. This does **not** prove the real built assets are within budget.
-- npm registry access unavailable from authoring container; React/Vitest/Playwright installs and executions not verified.
-- GitHub Actions runs currently fail before receiving a runner (jobs have no runner assigned and no steps executed). Inspect repository Actions settings/account quotas and rerun them.
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Native Node platform tests | **27 passed, 0 failed** | `node --experimental-strip-types --test tests/node/*.test.ts` in an independently reconstructed local working copy |
+| SQLite integration | Passed (included above) | On-disk reopen, FK constraints and lifecycle |
+| Real HTTP API integration | Passed (included above) | Auth, cookies, validation, history, comments, media, playlists, notifications |
+| Cross-feature creator→viewer HTTP story | Passed (included above) | Creator uploads/publishes; viewer subscribed, notified, watched, playlists, reacts, comments |
+| Hostile origin security tests | Passed (included above) | 403, same-origin pass, rate-limit boundaries |
+| React + Vitest suite | **Not executed** | npm registry unavailable |
+| Playwright Chromium E2E | **Not executed** | npm dependency installation unavailable; tests authored |
+| Full `npm run build` / TypeScript typecheck | **Not executed** | npm packages unavailable |
+| Docker image / smoke CI | **Not executed** | Docker/dependency runner unavailable |
+| GitHub Actions | **Failing before a runner is assigned** | https://github.com/rashidtvmr/streamforge-engineering-lab/issues/8 |
+| Reproducible `npm ci` | **Blocked** | No trusted `package-lock.json` available; https://github.com/rashidtvmr/streamforge-engineering-lab/issues/9 |
 
-**Do not claim the full E2E suite or release pipeline is green before the workflow actually executes.**
+## Release blocking criteria
 
-## Suggested release gate
+1. Generate and commit a reviewed `package-lock.json` in a dedicated PR, switch build/CI to `npm ci`.
+2. Fix GitHub Actions runner provisioning; rerun all 25 stacked PR gates.
+3. Run actual React/Vitest/fast-check and Playwright/axe suites; repair any test failures.
+4. Run production Vite build + Docker smoke from a clean checkout.
+5. Review CSP, origin validation, login abuse prevention, dependency audit and upload security before allowing public traffic.
+6. Only then mark the app end-to-end verified and consider merging the stack into `main`.
 
-For protected main: require the quality job, browser job, at least one code review, no unresolved blocking threads and no force pushes. Dependency lockfile must be generated and reviewed before production deployment.
+**Accurate claim:** implementation and test cases are present, backend/native integration verified. Full browser E2E success is **not** yet established.

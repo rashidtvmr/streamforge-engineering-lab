@@ -1,12 +1,14 @@
+import { isVideoId } from '../../src/domain/videoId.ts';
 import { randomUUID } from 'node:crypto';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { requireUser } from './auth.ts';
 import { notifyReply } from './notifications.ts';
 
 export async function handleComments(ctx: Context): Promise<boolean> {
-  const match = /^\/api\/v1\/videos\/(video-[0-9]{3})\/comments$/.exec(ctx.url.pathname);
+  const match = /^\/api\/v1\/videos\/([^/]+)\/comments$/.exec(ctx.url.pathname);
   if (!match) return false;
   const videoId = match[1]!;
+  if (!isVideoId(videoId)) throw new HttpError(400, 'INVALID_VIDEO_ID');
   if (ctx.request.method === 'GET') {
     const data = ctx.db.prepare(`SELECT c.id,c.video_id AS videoId,c.parent_id AS parentId,
       c.body,c.created_at AS createdAt,c.edited_at AS editedAt,a.display_name AS author,

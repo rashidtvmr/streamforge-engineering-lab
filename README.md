@@ -1,77 +1,84 @@
 # StreamForge Engineering Lab
 
-**A video discovery + saved-library application built with test-first engineering and small, reviewable GitHub pull requests.**
+A full-stack video discovery, community and creator **engineering learning platform** developed through **25 reviewable stacked pull requests**, not a single giant code dump.
 
-Built for learning large-team software engineering practices. StreamForge is a demo platform: 24 deterministic synthetic videos, search/filter/sort/pagination, a detail/watch page, and a locally persisted watchlist. A single shared CC0 clip demonstrates the player. There are no real accounts, uploads, creator monetization, subscription billing or production CDN.
+## Features delivered across the stack
 
-## Technology
+- **Viewer:** synthetic catalog, search and suggestions, sorting/categories, video watch, saved videos, personal history, likes/dislikes
+- **Community:** creator subscriptions, comments and replies, owner edits, reporting, notifications
+- **Collections:** private and unlisted playlists, persistent membership and ordering
+- **Creator:** sign in, draft creation, metadata editing, publishing/unpublishing, bounded MP4 uploads and byte-range playback
+- **Infrastructure:** SQLite persistence, versioned JSON APIs, request validation, static HTTP production runtime, Docker image, CI definition and documented security boundaries
+- **Engineering:** Node unit/real HTTP/integration tests, React Testing Library, fast-check invariants, Playwright cross-feature journeys, axe accessibility scanning, bundle budgets
 
-- Frontend: React 19, TypeScript (strict), Vite, accessible responsive CSS
-- Backend: Node 22 built-in HTTP server and explicit validated JSON contracts
-- Domain: pure functions, static deterministic fixtures and immutable operations
-- Client state: injectable localStorage gateway with safe parsing
-- Tests: Node built-in test runner, Vitest, React Testing Library, fast-check, Playwright, axe-core
-- Delivery: GitHub Actions, quality gates, browser reports, Dependabot, bundle-size budget
+The 24 seeded catalog videos and test accounts are synthetic. Creator-uploaded MP4 media must be valid and belong to the creator; the sample player uses CC0 footage for seed videos.
 
-## Run
+## Prerequisites and local launch
 
-Install Node 22 or newer. Network access to npm is needed for the initial install.
+Node 22 (native SQLite / TypeScript stripping) and npm.
 
 ```sh
+git clone https://github.com/rashidtvmr/streamforge-engineering-lab.git
+cd streamforge-engineering-lab
+git switch edu/25-final-verification
 npm install
+npx playwright install chromium
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. The combined dev command runs Vite on 5173 and the API on 4000. Vite proxies `/api` to the API.
+Open http://127.0.0.1:5173. Vite proxies /api to the Node API at 127.0.0.1:4000. For production build and same-origin server: `npm run build && npm start`.
 
-## Execute tests
+## Testing
 
 ```sh
-npm run test:native         # node:test domain, persistence, actual HTTP integration (no node_modules required)
-npm run test:components     # Vitest + React Testing Library + fast-check
-npm run test:e2e           # Playwright real browser + actual HTTP API + axe-core
+node --experimental-strip-types --test tests/node/*.test.ts   # actual native integration suites, no npm packages
 npm run typecheck
 npm run lint
+npm run test
+npm run test:e2e
 npm run build
 npm run check:bundle
-npm run test:coverage
 ```
 
-To run just the offline-native suites without any npm installation:
+All real app features have source and corresponding test coverage, but **browser and npm-dependent test runs are not yet verified passing**. The authoring container cannot resolve the npm registry, and GitHub Actions workflow jobs are failing before runners are assigned. See [runner blocker](https://github.com/rashidtvmr/streamforge-engineering-lab/issues/8), [lockfile blocker](https://github.com/rashidtvmr/streamforge-engineering-lab/issues/9) and [verification matrix](docs/TEST_MATRIX.md). Do not merge the PR stack until required CI checks actually execute and pass.
 
-```sh
-node --experimental-strip-types --test tests/node/*.test.ts
-```
+## Pull-request engineering curriculum
 
-Playwright needs Chromium installed once: `npx playwright install chromium`.
-
-## Read the PRs in order
-
-| PR | Topic | Review target |
+| Lesson | PR | Change |
 | --- | --- | --- |
-| [#1](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/1) | Vite + TS foundation | Types, lint, component smoke tests, CI |
-| [#2](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/2) | Domain + TDD | RED/GREEN/REFACTOR, properties and invariants |
-| [#3](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/3) | Backend API | HTTP integration, input validation and contract boundaries |
-| [#4](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/4) | Discovery UI | Behavior-driven React component integration |
-| [#5](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/5) | Saved library | Persistence, normalization and N+1 avoidance |
-| [#6](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/6) | Browser and delivery gates | Real user journeys, responsive a11y and artifact reports |
-| [#7](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/7) | Production runtime | Single-origin serving, CSP, immutable cache, Docker smoke test |
+| 01 | [#1](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/1) | Foundation and CI |
+| 02 | [#2](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/2) | TDD, pure domain and property tests |
+| 03 | [#3](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/3) | HTTP APIs and contracts |
+| 04 | [#4](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/4) | React discovery and watch |
+| 05 | [#5](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/5) | Durable watchlist state |
+| 06 | [#6](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/6) | Browser E2E and accessibility baseline |
+| 07 | [#7](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/7) | Docker production runtime |
+| 08 | [#10](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/10) | SQLite persistence |
+| 09 | [#11](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/11) | Accounts and authenticated sessions |
+| 10 | [#12](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/12) | React registration and login |
+| 11 | [#13](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/13) | Watch history |
+| 12 | [#14](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/14) | Likes and dislikes |
+| 13 | [#15](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/15) | Creator subscriptions |
+| 14 | [#16](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/16) | Playlist CRUD |
+| 15 | [#17](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/17) | Playlist ordering and unlisted sharing |
+| 16 | [#18](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/18) | Comments and threaded replies |
+| 17 | [#19](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/19) | Comment editing and abuse reports |
+| 18 | [#20](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/20) | Creator Studio drafts |
+| 19 | [#21](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/21) | Publishing and catalog integration |
+| 20 | [#22](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/22) | MP4 upload and range playback |
+| 21 | [#23](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/23) | Trending and personalized discovery |
+| 22 | [#24](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/24) | Search suggestions and recent queries |
+| 23 | [#25](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/25) | Notifications and activity events |
+| 24 | [#26](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/26) | Security and reliability gates |
+| 25 | [#27](https://github.com/rashidtvmr/streamforge-engineering-lab/pull/27) | Full workflows, mobile navigation and release evidence |
 
-PRs are **stacked**, each one targeting its predecessor's head branch. Review from #1 upward. Do not merge until CI is green; after merging the previous PR, retarget the next PR to `main` if GitHub has not done so automatically.
+Every lesson targets the previous unmerged lesson's branch; PR #1 targets `main`. Review **bottom-up** and merge in sequence after quality gates are green. GitHub issue numbers #8 and #9 account for the PR number gap.
 
-## Engineering contracts
+## Architecture and limitations
 
-See `docs/adr/` for architectural decisions, `docs/learning/` for exercises, `CONTRIBUTING.md` for review conventions, and `SECURITY.md` for the synthetic demo's threat model.
+- API: Node 22 HTTP and native SQLite, cookie sessions, versioned /api/v1 routes; local seeded /api/videos remains for video discovery.
+- Durable account-related state lives in SQLite; saved watchlist stays in per-browser localStorage.
+- MP4 uploads are restricted to 8 MiB and validate basic header metadata, **not** full media structure/antivirus/transcoding. This is an educational application, **not production-ready**.
+- Do not use real customer data or publish to the public Internet without reviewing security, monitoring, database scaling, media protection and deployment requirements.
 
-### Known operational limitations
-
-- Local development requires npm packages; the authoring environment used for the initial PRs cannot contact the npm registry. Native Node tests **were executed**; React/Vitest/Playwright must be run after installing dependencies.
-- GitHub Actions runs were created but failed before a runner was assigned, so CI results are **not green**. Review GitHub Actions runner/account settings and rerun the workflows.
-- No checked-in `package-lock.json` was generated in this offline authoring environment. Pinning direct versions is insufficient for full reproducibility; after a successful `npm install`, commit the generated lockfile and switch CI from `npm install` to `npm ci`.
-- A watchlist stored in localStorage is not synchronized across devices. Static demo footage requires internet access for playback.
-
-## Production demo
-
-After installing dependencies, run `npm run build && npm start` to serve the frontend and API from http://127.0.0.1:4000. To build the container, run `docker build -t streamforge .` then `docker run --rm -p 127.0.0.1:4000:4000 streamforge`. See [PR 07 learning guide](docs/learning/07-production-runtime.md).
-
-**Important:** The Node HTTP production-static suite has been run locally; the actual Vite build, container image and Playwright browser suite have not yet run successfully in this environment.
+Review `docs/learning/`, `docs/adr/`, `SECURITY.md` and `CONTRIBUTING.md` for architecture choices, test exercises, and review rules.

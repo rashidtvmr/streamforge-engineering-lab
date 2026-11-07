@@ -1,10 +1,12 @@
+import { isVideoId } from '../../src/domain/videoId.ts';
 import { HttpError, readJson, respond, type Context } from './http.ts';
 import { getSessionUser, requireUser } from './auth.ts';
 
 export async function handleReactions(ctx: Context): Promise<boolean> {
-  const match = /^\/api\/v1\/videos\/(video-[0-9]{3})\/reactions$/.exec(ctx.url.pathname);
+  const match = /^\/api\/v1\/videos\/([^/]+)\/reactions$/.exec(ctx.url.pathname);
   if (!match) return false;
   const videoId = match[1]!;
+  if (!isVideoId(videoId)) throw new HttpError(400, 'INVALID_VIDEO_ID');
   if (ctx.request.method === 'GET') {
     const rows = ctx.db.prepare('SELECT kind, COUNT(*) AS count FROM reactions WHERE video_id=? GROUP BY kind').all(videoId) as { kind: string; count: number }[];
     const user = getSessionUser(ctx);
